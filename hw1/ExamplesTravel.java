@@ -4,17 +4,14 @@
 // Zilbersher Alexander
 // zilby
 
-//need to add comments describing what each class is for
-//and or what interfaces are for
-//also write down the units and data definitions for the
-//transporter classes
-
+//to represent a habitation
 interface IHabitation {}
 
+//to represent a planet
 class Planet implements IHabitation{
-    String name;
-    int population;
-    int spacePorts;
+    String name; 
+    int population; //in thousands of people
+    int spacePorts; 
 
     Planet (String name, int population, int spaceports) {
 	this.name = name;
@@ -23,6 +20,7 @@ class Planet implements IHabitation{
     }
 }
 
+//to represent a space-station
 class SpaceStation implements IHabitation{
     String name;
     int population;
@@ -35,11 +33,13 @@ class SpaceStation implements IHabitation{
     }
 }
 
+//to represent a method of transportation
 interface ITransportation {}
 
+//to represent a transporter
 class Transporter implements ITransportation{
-    IHabitation from;
-    IHabitation to;
+    IHabitation from; //habitations must either be a planet 
+    IHabitation to;   //or have a transporter-pad
 
     Transporter (IHabitation from, IHabitation to) {
 	this.from = from;
@@ -48,8 +48,8 @@ class Transporter implements ITransportation{
 }
 
 class Shuttle implements ITransportation{
-    IHabitation from;
-    IHabitation to;
+    IHabitation from; //habitations must either be a 
+    IHabitation to;   //space-station or have a spaceport
     int fuel;
     int capacity;
 
@@ -62,8 +62,8 @@ class Shuttle implements ITransportation{
 }
 
 class SpaceElevator implements ITransportation{
-    IHabitation from;
-    IHabitation to;
+    IHabitation from; //can only travel from a planet
+    IHabitation to;   //to a space station or vice versa
     int tonnage;
 
     

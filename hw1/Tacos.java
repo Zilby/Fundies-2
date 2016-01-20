@@ -16,7 +16,7 @@ class EmptyShell implements ITaco {
     }
 }
 
-// to represent a filled taco
+// to represent a filling
 class Filled implements ITaco {
     ITaco taco;
     String filling;
@@ -27,6 +27,7 @@ class Filled implements ITaco {
     }
 }
 
+// to represent examples of taco orders
 class ExamplesTacos {
     ITaco order1 = new EmptyShell(true);
     Filled carnitas = new Filled(order1, "carnitas");

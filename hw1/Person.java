@@ -4,6 +4,7 @@
 // Zilbersher Alexander
 // zilby
 
+//to represent a person
 class Person {
     String name;
     int yob;
@@ -18,6 +19,7 @@ class Person {
     }
 }
 
+//to represent examples of people given their names, yob, state and citizenship
 class ExamplesPerson {
     Person jackie = new Person ("Jackie Robinson", 1920, "NY", true);
     Person golda = new Person ("Golda Meir", 1930, "MA", false);
