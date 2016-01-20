@@ -36,10 +36,14 @@ class SpaceStation implements IHabitation{
 //to represent a method of transportation
 interface ITransportation {}
 
-//to represent a transporter
+/*
+  to represent a transporter Constraints: Can only transport to or from	  	
+  spacestations if the spacestation has a transporterpad. Can travel between 	
+  planets	  	
+*/
 class Transporter implements ITransportation{
-    IHabitation from; //habitations must either be a planet 
-    IHabitation to;   //or have a transporter-pad
+    IHabitation from; 
+    IHabitation to; 
 
     Transporter (IHabitation from, IHabitation to) {
 	this.from = from;
@@ -47,9 +51,14 @@ class Transporter implements ITransportation{
     }
 }
 
+/*
+  to represent a Shuttle Constraints: Shuttles must be concerned about fuel
+  (kg) and capacity (number of passengers); must travel to or from planets with	
+  spaceports, but can travel to any spacestation.	  	
+*/
 class Shuttle implements ITransportation{
-    IHabitation from; //habitations must either be a 
-    IHabitation to;   //space-station or have a spaceport
+    IHabitation from;
+    IHabitation to; 
     int fuel;
     int capacity;
 
@@ -61,12 +70,16 @@ class Shuttle implements ITransportation{
     }
 }
 
+/*
+  to represent a SpaceElevator Constraints: must have different types of
+  habitation for travel to and from (cannot go to and from a planet or
+  spaceStation), has a limited amount of tonnage that can be carried.	  	
+*/
 class SpaceElevator implements ITransportation{
-    IHabitation from; //can only travel from a planet
-    IHabitation to;   //to a space station or vice versa
+    IHabitation from; 
+    IHabitation to;  
     int tonnage;
 
-    
     SpaceElevator (IHabitation from, IHabitation to, int tonnage) {
 	this.from = from;
 	this.to = to;
@@ -75,17 +88,17 @@ class SpaceElevator implements ITransportation{
 }
 
 class ExamplesTravel {
-    Planet nausicant = new Planet ("Nausicant", 6000000, 8);
-    Planet earth = new Planet ("Earth", 9000000, 14);
-    Planet remus = new Planet ("Remus", 18000000, 23);
-    SpaceStation watcherGrid = new SpaceStation ("WatcherGrid", 1000, 0);
-    SpaceStation deepSpace42 = new SpaceStation ("Deep Space 42", 7000, 8);
-    SpaceStation deathStar = new SpaceStation ("Death Star", 10000, 30);
+    IHabitation nausicant = new Planet ("Nausicant", 6000000, 8);
+    IHabitation earth = new Planet ("Earth", 9000000, 14);
+    IHabitation remus = new Planet ("Remus", 18000000, 23);
+    IHabitation watcherGrid = new SpaceStation ("WatcherGrid", 1, 0);
+    IHabitation deepSpace42 = new SpaceStation ("Deep Space 42", 7, 8);
+    IHabitation deathStar = new SpaceStation ("Death Star", 10, 30);
 
-    Transporter transporter1 = new Transporter(nausicant, deathStar);
-    Transporter transporter2 = new Transporter(deepSpace42, earth);
-    Shuttle shuttle1 = new Shuttle(watcherGrid, deepSpace42, 100, 150);
-    Shuttle shuttle2 = new Shuttle(deathStar, earth, 50, 80);
-    SpaceElevator elevator1 = new SpaceElevator(remus, deepSpace42, 4);
-    SpaceElevator elevator2 = new SpaceElevator(deathStar, earth, 8);
+    ITransportation transporter1 = new Transporter(nausicant, deathStar);
+    ITransportation transporter2 = new Transporter(deepSpace42, earth);
+    ITransportation shuttle1 = new Shuttle(watcherGrid, deepSpace42, 100, 150);
+    ITransportation shuttle2 = new Shuttle(deathStar, earth, 50, 80);
+    ITransportation elevator1 = new SpaceElevator(remus, deepSpace42, 4);
+    ITransportation elevator2 = new SpaceElevator(deathStar, earth, 8);
 }

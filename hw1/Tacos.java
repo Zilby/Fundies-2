@@ -30,13 +30,13 @@ class Filled implements ITaco {
 // to represent examples of taco orders
 class ExamplesTacos {
     ITaco order1 = new EmptyShell(true);
-    Filled carnitas = new Filled(order1, "carnitas");
-    Filled salsa = new Filled(order1, "salsa");
-    Filled lettuce = new Filled(order1, "lettuce");
-    Filled cheddarCheese = new Filled(order1, "cheddar cheese");
+    Filled carnitas1 = new Filled(order1, "carnitas");
+    Filled salsa1 = new Filled(order1, "salsa");
+    Filled lettuce1 = new Filled(order1, "lettuce");
+    Filled cheddarCheese1 = new Filled(order1, "cheddar cheese");
 
     ITaco order2 = new EmptyShell(false);
-    Filled veggies = new Filled(order1, "veggies");
-    Filled guacamole = new Filled(order1, "guacamole");
-    Filled sourCream = new Filled(order1, "sourCream");
+    Filled veggies1 = new Filled(order1, "veggies");
+    Filled guacamole1 = new Filled(order1, "guacamole");
+    Filled sourCream1 = new Filled(order1, "sourCream");
 }
