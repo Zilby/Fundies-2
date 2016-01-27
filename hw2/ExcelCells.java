@@ -1,3 +1,10 @@
+//TODO:
+//uncomment import tester.*;
+//add in comments for all of the functions and such
+//add in new tests/check expects
+//delete old tests (driver class) once this is completed
+
+
 //import tester.*;
 
 // represents the interface for data of a cell
@@ -145,9 +152,8 @@ class Cell {
     }
 }
 
-// contains all examples for the program
-class ExamplesExcelCells {
-
+// This testing was for my purposes only, should be deleted
+class Driver {
     public static void main(String[] args){
 	IFun sum = new Sum();
 	IFun mul = new Mul();
@@ -155,60 +161,34 @@ class ExamplesExcelCells {
 	
 	IData a1data = new Number (25);
 	Cell cellA1 = new Cell ("A", 1, a1data);
-    
 	IData b1data = new Number (10);
-	Cell cellB1 = new Cell ("B", 1, b1data);
-    
+	Cell cellB1 = new Cell ("B", 1, b1data);    
 	IData c1data = new Number (1);
-	Cell cellC1 = new Cell ("C", 1, c1data);
-    
+	Cell cellC1 = new Cell ("C", 1, c1data);    
 	IData d1data = new Number (27);
-	Cell cellD1 = new Cell ("D", 1, d1data);
-    
+	Cell cellD1 = new Cell ("D", 1, d1data);    
 	IData e1data = new Number (16);
 	Cell cellE1 = new Cell ("E", 1, e1data);
-
 	IData e2data = new Formula (cellE1, cellD1, sum);
 	Cell cellE2 = new Cell ("E", 2, e2data);
-
 	IData a3data = new Formula (cellA1, cellB1, mul);
 	Cell cellA3 = new Cell ("A", 3, a3data);
-
 	IData c2data = new Formula (cellA3, cellC1, sum);
 	Cell cellC2 = new Cell ("C", 2, c2data);
-
 	IData c4data = new Formula (cellE1, cellD1, mul);
 	Cell cellC4 = new Cell ("C", 4, c4data);
-
 	IData b3data = new Formula (cellE1, cellA3, mod);
 	Cell cellB3 = new Cell ("B", 3, b3data);
-
 	IData d2data = new Formula (cellC2, cellE2, mod);
 	Cell cellD2 = new Cell ("D", 2, d2data);
-
 	IData d3data = new Formula (cellD2, cellA1, mul);
 	Cell cellD3 = new Cell ("D", 3, d3data);
-
 	IData d4data = new Formula (cellC4, cellA1, sum);
 	Cell cellD4 = new Cell ("D", 4, d4data);
-
 	IData c5data = new Formula (cellD4, cellB3, sum);
-	Cell cellC5 = new Cell ("C", 5, c5data);
-    
+	Cell cellC5 = new Cell ("C", 5, c5data);    
 	IData a5data = new Formula (cellD3, cellC5, mod);
 	Cell cellA5 = new Cell ("A", 5, a5data);
-
-	/* Example Cells
-       
-	   IData e4data = new Formula (this.cellD4, this.cellC4, "mul");
-	   Cell cellE4 = new Cell ("E", 4, this.e4data);
-       
-	   IData b5data = new Formula (this.cellC2 this.cellA5, "mod");
-	   Cell cellB5 = new Cell ("B", 5, this.b5data);
-       
-	   IData c3data = new Formula (this.cellE2, this.cellB3, "sum");
-	   Cell cellC3 = new Cell ("C", 3, this.c3data);
-	*/
 
 	System.out.println(cellD2.value());
 	System.out.println(cellB3.value());
@@ -226,67 +206,97 @@ class ExamplesExcelCells {
     }
 }
 
-/* Prior Tests
 // contains all examples for the program
 class ExamplesExcelCells {
+    IFun sum = new Sum();
+    IFun mul = new Mul();
+    IFun mod = new Mod();
+	
+    IData a1data = new Number (25);
+    Cell cellA1 = new Cell ("A", 1, this.a1data);
     
-	IData a1data = new Number (25);
-	Cell cellA1 = new Cell ("A", 1, this.a1data);
+    IData b1data = new Number (10);
+    Cell cellB1 = new Cell ("B", 1, this.b1data);
     
-	IData b1data = new Number (10);
-	Cell cellB1 = new Cell ("B", 1, this.b1data);
+    IData c1data = new Number (1);
+    Cell cellC1 = new Cell ("C", 1, this.c1data);
     
-	IData c1data = new Number (1);
-	Cell cellC1 = new Cell ("C", 1, this.c1data);
+    IData d1data = new Number (27);
+    Cell cellD1 = new Cell ("D", 1, this.d1data);
     
-	IData d1data = new Number (27);
-	Cell cellD1 = new Cell ("D", 1, this.d1data);
+    IData e1data = new Number (16);
+    Cell cellE1 = new Cell ("E", 1, this.e1data);
+
+    IData e2data = new Formula (this.cellE1, this.cellD1, this.sum);
+    Cell cellE2 = new Cell ("E", 2, this.e2data);
+
+    IData a3data = new Formula (this.cellA1, this.cellB1, this.mul);
+    Cell cellA3 = new Cell ("A", 3, this.a3data);
+
+    IData c2data = new Formula (this.cellA3, this.cellC1, this.sum);
+    Cell cellC2 = new Cell ("C", 2, this.c2data);
+
+    IData c4data = new Formula (this.cellE1, this.cellD1, this.mul);
+    Cell cellC4 = new Cell ("C", 4, this.c4data);
+
+    IData b3data = new Formula (this.cellE1, this.cellA3, this.mod);
+    Cell cellB3 = new Cell ("B", 3, this.b3data);
+
+    IData d2data = new Formula (this.cellC2, this.cellE2, this.mod);
+    Cell cellD2 = new Cell ("D", 2, this.d2data);
+
+    IData d3data = new Formula (this.cellD2, this.cellA1, this.mul);
+    Cell cellD3 = new Cell ("D", 3, this.d3data);
+
+    IData d4data = new Formula (this.cellC4, this.cellA1, this.sum);
+    Cell cellD4 = new Cell ("D", 4, this.d4data);
+
+    IData c5data = new Formula (this.cellD4, this.cellB3, this.sum);
+    Cell cellC5 = new Cell ("C", 5, this.c5data);
     
-	IData e1data = new Number (16);
-	Cell cellE1 = new Cell ("E", 1, this.e1data);
+    IData a5data = new Formula (this.cellD3, this.cellC5, this.mod);
+    Cell cellA5 = new Cell ("A", 5, this.a5data);
 
-	IData e2data = new Formula (this.cellE1, this.cellD1, "sum");
-	Cell cellE2 = new Cell ("E", 2, this.e2data);
-
-	IData a3data = new Formula (this.cellA1, this.cellB1, "mul");
-	Cell cellA3 = new Cell ("A", 3, this.a3data);
-
-	IData c2data = new Formula (this.cellA3, this.cellC1, "sum");
-	Cell cellC2 = new Cell ("C", 2, this.c2data);
-
-	IData c4data = new Formula (this.cellE1, this.cellD1, "mul");
-	Cell cellC4 = new Cell ("C", 4, this.c4data);
-
-	IData b3data = new Formula (this.cellE1, this.cellA3, "mod");
-	Cell cellB3 = new Cell ("B", 3, this.b3data);
-
-	IData d2data = new Formula (this.cellC2, this.cellE2, "mod");
-	Cell cellD2 = new Cell ("D", 2, this.d2data);
-
-	IData d3data = new Formula (this.cellD2, this.cellA1, "mul");
-	Cell cellD3 = new Cell ("D", 3, this.d3data);
-
-	IData d4data = new Formula (this.cellC4, this.cellA1, "sum");
-	Cell cellD4 = new Cell ("D", 4, this.d4data);
-
-	IData c5data = new Formula (this.cellD4, this.cellB3, "sum");
-	Cell cellC5 = new Cell ("C", 5, this.c5data);
-    
-	IData a5data = new Formula (this.cellD3, this.cellC5, "mod");
-	Cell cellA5 = new Cell ("A", 5, this.a5data);
-
-	/* Example Cells
+    /* Example Cells
        
-	   IData e4data = new Formula (this.cellD4, this.cellC4, "mul");
-	   Cell cellE4 = new Cell ("E", 4, this.e4data);
+       IData e4data = new Formula (this.cellD4, this.cellC4, this.mul);
+       Cell cellE4 = new Cell ("E", 4, this.e4data);
        
-	   IData b5data = new Formula (this.cellC2 this.cellA5, "mod");
-	   Cell cellB5 = new Cell ("B", 5, this.b5data);
+       IData b5data = new Formula (this.cellC2 this.cellA5, this.mod);
+       Cell cellB5 = new Cell ("B", 5, this.b5data);
        
-	   IData c3data = new Formula (this.cellE2, this.cellB3, "sum");
-	   Cell cellC3 = new Cell ("C", 3, this.c3data);
-       
-       }
-*/
+       IData c3data = new Formula (this.cellE2, this.cellB3, this.sum);
+       Cell cellC3 = new Cell ("C", 3, this.c3data);
+    */
+    
+    /* You should test these cases to make sure they're correct
+       cellD2.value();
+       cellB3.value();
+       cellD2.countArgs();
+       cellB3.countArgs();
+       cellD2.countFuns();
+       cellB3.countFuns();
+       cellD2.formulaDepth();
+       cellB3.formulaDepth();
+       cellD2.formula(0);
+       cellD2.formula(1);
+       cellD2.formula(2);
+       cellD2.formula(3);
+       cellD2.formula(4);
 
-
+       Anticipated results: 
+       36
+       16
+       5
+       3
+       4
+       2
+       3
+       2
+       D2
+       mod(C2, E2)
+       mod(sum(A3, C1), sum(E1, D1))
+       mod(sum(mul(A1, B1), 1), sum(16, 27))
+       mod(sum(mul(25, 10), 1), sum(16, 27))
+    */
+}
