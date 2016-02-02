@@ -15,6 +15,8 @@ interface IItem {
 
 //to represent a Text
 class Text implements IItem {
+    
+    // represents the contents of a text
     String contents;
 
     Text(String contents) {
@@ -39,8 +41,14 @@ class Text implements IItem {
 
 //to represent an Image
 class Image implements IItem {
+    
+    // represents the filename of an Image
     String filename;
+
+    // represents the file size of an Image
     int size;
+
+    // represents the .filetype of an Image
     String filetype;
 
     Image(String filename, int size, String filetype) {
@@ -67,7 +75,11 @@ class Image implements IItem {
 
 //to represent a Link
 class Link implements IItem {
+
+    // represents the name of a Link
     String name;
+
+    // represents the WebPage the Link links to
     WebPage page;
 
     Link(String name, WebPage page) {
@@ -141,17 +153,23 @@ class ConsLoItem implements ILoItem {
 
     // returns the String of the first image's filename and filetype with the
     // rest of the image's filenames and types
-
     public String images() {
-        if (this.rest.images() == "")
+        
+        if (this.rest.images().equals("")) {
             return this.first.images() + this.rest.images();
-        else if (this.first.images() == "")
-            return this.rest.images();
-        else
+        } 
+        else if (this.first.images().equals("")) {
+            return this.rest.images(); 
+        } 
+        else {
             return (this.first.images() + ", " + this.rest.images());
+        }
     }
-    
+
+    // represents the first item in the ConsLoItem
     IItem first;
+
+    // represents the rest of the items in the ConsLoItem
     ILoItem rest;
 
     ConsLoItem(IItem first, ILoItem rest) {
@@ -162,8 +180,14 @@ class ConsLoItem implements ILoItem {
 
 //to represent a webpage
 class WebPage {
+
+    // represents the webpage's url
     String url;
+
+    // represents the title of the webpage
     String title;
+
+    //represents the contents of the webpage
     ILoItem items;
 
     WebPage(String url, String title, ILoItem items) {
@@ -195,6 +219,7 @@ class WebPage {
  * 
  */
 
+// contains all examples for the program
 class ExamplesWebPage {
 
     // defines the items used in the webpages    
@@ -245,7 +270,8 @@ class ExamplesWebPage {
            t.checkExpect(this.htdp.totalImageSize(), 4300) &&
            t.checkExpect(this.fundiesWP.totalImageSize(), 9240);
     }
-    
+
+    // tests for the method textLength
     boolean testtextLength(Tester t) {
         return t.checkExpect(this.mtlist.textLength(), 0) &&
            t.checkExpect(this.hsh.textLength(), 15) &&
@@ -256,6 +282,7 @@ class ExamplesWebPage {
            t.checkExpect(this.fundiesWP.textLength(), 182);
     }
 
+    // tests for the method images
     boolean testimage(Tester t) {
         return t.checkExpect(this.lab.images(), "wvh-lab.png") &&
                t.checkExpect(this.funliste.images(), 

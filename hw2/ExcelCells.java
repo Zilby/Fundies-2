@@ -1,302 +1,257 @@
-//TODO:
-//uncomment import tester.*;
-//add in comments for all of the functions and such
-//add in new tests/check expects
-//delete old tests (driver class) once this is completed
-
-
-//import tester.*;
+import tester.*;
 
 // represents the interface for data of a cell
 interface IData {
-    int getValue();
-    int getArgs();
-    int getFuns();
-    int getDepth();
+    
+    // used in computing the cell's value
+    int value();
+    
+    // used in comupting the number of arguments in a cell
+    int countArgument();
+    
+    // used in computing the number of functions in a cell
+    int countFunctions();
+    
+    // used in computing the depth of a cell
+    int formDepth();
+    
+    // used in forming the String of formulas in the cell
     String getFormula(int depth);
-}
-
-class Formula implements IData {
-    int number;
-    Cell a;
-    Cell b;
-    IFun fun;
     
-    Formula (Cell a, Cell b, IFun fun){
-	this.a = a;
-	this.b = b;
-	this.fun = fun;
-	this.number = fun.form(this.a.value(), this.b.value());
-    }
-
-    public int getValue(){
-	return this.number;
-    }
-
-    public int getArgs(){
-	return (this.a.countArgs() + this.b.countArgs());
-    }
-
-    public int getFuns(){
-	return (this.a.countFuns() + this.b.countFuns() + 1);
-    }
-
-    public int getDepth(){
-	if (this.a.formulaDepth() > this.b.formulaDepth())
-	    return 1 + this.a.formulaDepth();
-	else
-	    return 1 + this.b.formulaDepth();
-    }
-
-    public String getFormula(int depth){
-	return (this.fun.getName() + "(" + this.a.formula((depth - 1))
-		+ ", " + this.b.formula((depth - 1)) + ")");
-    }
 }
 
-class Number implements IData {
-    int number;
+// represents the interface for the functions
+// that are used by Formulas
+interface IFunction {
     
-    Number (int number) {
-        this.number = number;
-    }
-
-    public int getValue(){
-	return this.number;
-    }
-
-    public int getArgs(){
-	return 1;
-    }
-
-    public int getFuns(){
-	return 0;
-    }
-
-    public int getDepth(){
-	return 0;
-    }
-
-    public String getFormula(int depth){
-	return Integer.toString(number);
-    }
-}
-
-interface IFun {
-    int form(int a, int b);
+    //  returns the function applied to each cell
+    int answer(Cell cell1, Cell cell2);
+    
+    // used in accessing the name of the function
     String getName();
 }
 
-class Mul implements IFun {   
-    public int form(int a, int b){
-	return (a * b);
+// to represent the multiplication function
+class Mul implements IFunction {
+
+    // returns the product of the first and second cells
+    public int answer(Cell cell1, Cell cell2) {
+        return (cell1.data.value() * cell2.data.value());
     }
     
-    public String getName(){
-	return "mul";
+    // returns the String "mul" for the getFormula function
+    public String getName() {
+        return "mul";    
     }
 }
 
-class Mod implements IFun {
-    public int form(int a, int b){
-	return (a % b);
+// to represent the modulo function
+class Mod implements IFunction {
+    
+    // returns the remainder of the first cell divided by the second. 
+    public int answer(Cell cell1, Cell cell2) {
+        return (cell1.data.value() % cell2.data.value());
     }
-    public String getName(){
-	return "mod";
-    }
-}
-
-class Sum implements IFun {
-    public int form(int a, int b){
-	return (a + b);
-    }
-
-    public String getName(){
-	return "sum";
+    
+    // returns the String "mod" for the getFormula function
+    public String getName() {
+        return "mod";
     }
 }
 
-// represents the cell with a row number, column letter and data within
+// to represent the summation function
+class Sum implements IFunction {
+    
+    // returns the two cells summed together 
+    public int answer(Cell cell1, Cell cell2) {
+        return (cell1.data.value() + cell2.data.value());
+    }
+    
+    // returns the String "sum" for the getFormula function
+    public String getName() {
+        return "sum";
+    }
+}
+
+// to represent a formula potentially used in a Cell
+class Formula implements IData {
+
+    // represents the function used by a Formula
+    IFunction func;
+
+    // represents the Cells used by a Formula
+    Cell cell1;
+    Cell cell2;
+    
+    Formula(IFunction func, Cell cell1, Cell cell2) {
+        this.func = func;
+        this.cell1 = cell1;
+        this.cell2 = cell2;
+    }
+    
+    // returns the answer to the function applied to the two cells
+    public int value() {
+        return this.func.answer(this.cell1, this.cell2);
+    }
+   
+    // returns the sum of arguments in the two cells
+    public int countArgument() {
+        return this.cell1.countArgs() + this.cell2.countArgs();
+    }
+   
+    // returns the sum of functions in the two cells
+    public int countFunctions() {
+        return this.cell1.countFuns() + this.cell2.countFuns() + 1;
+    }
+   
+    // returns how deep the formula is nested in the cell
+    public int formDepth() {
+        return this.cell1.formulaDepth() + this.cell2.formulaDepth() + 1;
+    }
+   
+    // returns the String of the formula that is used to compute the cell
+    public String getFormula(int depth) {
+        return (this.func.getName() + "(" + this.cell1.formula((depth - 1))
+            + ", " + this.cell2.formula((depth - 1)) + ")");
+    }    
+    
+}
+    
+class Number implements IData {
+    int number;
+ 
+    // returns the number of the cell
+    Number(int number) {
+        this.number = number;
+    }
+
+    // access the number to be used in the value computation
+    public int value() {
+        return this.number;
+    }
+    
+    // returns 1 for every time there is an argument
+    public int countArgument() {
+        return 1;
+    }
+    
+    // returns 0 because the number class does not contain a function
+    public int countFunctions() {
+        return 0;
+    }
+    
+    // returns 0 because the number class does not contain a formula
+    public int formDepth() {
+        return 0;
+    }
+    
+    // returns the number as a String to be used in the getFormula funciton
+    public String getFormula(int depth) {
+        return Integer.toString(number);
+    }
+}
+
+//represents the cell with a row number, column letter and data within
 class Cell {
+
+    // represents a Cell's column A-E
     String column;
+
+    // represents a Cell's row 1-5
     int row;
+
+    // represents a Cell's data
     IData data;
-    
-    Cell (String column, int row, IData data) {
+ 
+    Cell(String column, int row, IData data) {
         this.column = column;
         this.row = row;
         this.data = data;
     }
-
-    int value(){
-	return this.data.getValue();
+    
+    // computes the value of the cell
+    int value() {
+        return this.data.value();
     }
-
-    int countArgs(){
-	return this.data.getArgs();
+    
+    // counts the arguments in the cell
+    int countArgs() {
+        return this.data.countArgument();
     }
-
-    int countFuns(){
-	return this.data.getFuns();
+    
+    // counts the functions in the cell
+    int countFuns() {
+        return this.data.countFunctions();
     }
-
-    int formulaDepth(){
-	return this.data.getDepth();
+    
+    // counts the depth of the formula
+    int formulaDepth() {
+        return this.data.formDepth();
     }
-
-    String formula(int depth){
-	if(depth == 0)
-	    return (this.column + Integer.toString(this.row));
-	else
-	    return this.data.getFormula(depth);
-    }
-}
-
-// This testing was for my purposes only, should be deleted
-class Driver {
-    public static void main(String[] args){
-	IFun sum = new Sum();
-	IFun mul = new Mul();
-	IFun mod = new Mod();
-	
-	IData a1data = new Number (25);
-	Cell cellA1 = new Cell ("A", 1, a1data);
-	IData b1data = new Number (10);
-	Cell cellB1 = new Cell ("B", 1, b1data);    
-	IData c1data = new Number (1);
-	Cell cellC1 = new Cell ("C", 1, c1data);    
-	IData d1data = new Number (27);
-	Cell cellD1 = new Cell ("D", 1, d1data);    
-	IData e1data = new Number (16);
-	Cell cellE1 = new Cell ("E", 1, e1data);
-	IData e2data = new Formula (cellE1, cellD1, sum);
-	Cell cellE2 = new Cell ("E", 2, e2data);
-	IData a3data = new Formula (cellA1, cellB1, mul);
-	Cell cellA3 = new Cell ("A", 3, a3data);
-	IData c2data = new Formula (cellA3, cellC1, sum);
-	Cell cellC2 = new Cell ("C", 2, c2data);
-	IData c4data = new Formula (cellE1, cellD1, mul);
-	Cell cellC4 = new Cell ("C", 4, c4data);
-	IData b3data = new Formula (cellE1, cellA3, mod);
-	Cell cellB3 = new Cell ("B", 3, b3data);
-	IData d2data = new Formula (cellC2, cellE2, mod);
-	Cell cellD2 = new Cell ("D", 2, d2data);
-	IData d3data = new Formula (cellD2, cellA1, mul);
-	Cell cellD3 = new Cell ("D", 3, d3data);
-	IData d4data = new Formula (cellC4, cellA1, sum);
-	Cell cellD4 = new Cell ("D", 4, d4data);
-	IData c5data = new Formula (cellD4, cellB3, sum);
-	Cell cellC5 = new Cell ("C", 5, c5data);    
-	IData a5data = new Formula (cellD3, cellC5, mod);
-	Cell cellA5 = new Cell ("A", 5, a5data);
-
-	System.out.println(cellD2.value());
-	System.out.println(cellB3.value());
-	System.out.println(cellD2.countArgs());
-	System.out.println(cellB3.countArgs());
-	System.out.println(cellD2.countFuns());
-	System.out.println(cellB3.countFuns());
-	System.out.println(cellD2.formulaDepth());
-	System.out.println(cellB3.formulaDepth());
-	System.out.println(cellD2.formula(0));
-	System.out.println(cellD2.formula(1));
-	System.out.println(cellD2.formula(2));
-	System.out.println(cellD2.formula(3));
-	System.out.println(cellD2.formula(4));
-    }
+    
+    // returns the String of the formula that is used to compute the cell
+    String formula(int depth) { 
+        if (depth == 0) {
+            return (this.column + Integer.toString(this.row));
+        } 
+        else {
+            return this.data.getFormula(depth);
+        }
+    }      
 }
 
 // contains all examples for the program
 class ExamplesExcelCells {
-    IFun sum = new Sum();
-    IFun mul = new Mul();
-    IFun mod = new Mod();
-	
-    IData a1data = new Number (25);
-    Cell cellA1 = new Cell ("A", 1, this.a1data);
     
-    IData b1data = new Number (10);
-    Cell cellB1 = new Cell ("B", 1, this.b1data);
+    Cell cellA1 = new Cell("A", 1, (new Number(25)));
+    Cell cellB1 = new Cell("B", 1, (new Number(10)));
+    Cell cellC1 = new Cell("C", 1, (new Number(1)));
+    Cell cellD1 = new Cell("D", 1, (new Number(27)));
+    Cell cellE1 = new Cell("E", 1, (new Number(16)));
+    Cell cellA3 = new Cell("A", 3, (new Formula(new Mul(), cellA1, cellB1)));
+    Cell cellB3 = new Cell("B", 3, (new Formula(new Mod(), cellE1, cellA3)));
+    Cell cellC4 = new Cell("C", 4, (new Formula(new Mul(), cellE1, cellD1)));
+    Cell cellC2 = new Cell("C", 2, (new Formula(new Sum(), cellA3, cellC1)));
+    Cell cellD4 = new Cell("D", 4, (new Formula(new Sum(), cellC4, cellA1)));
+    Cell cellE2 = new Cell("E", 2, (new Formula(new Sum(), cellE1, cellD1)));
+    Cell cellD2 = new Cell("D", 2, (new Formula(new Mod(), cellC2, cellE2)));
+    Cell cellD3 = new Cell("D", 3, (new Formula(new Mul(), cellD2, cellA1)));
+    Cell cellC5 = new Cell("C", 5, (new Formula(new Sum(), cellD4, cellB3)));
+    Cell cellA5 = new Cell("A", 5, (new Formula(new Mod(), cellD3, cellC5)));
+
+    // tests the value method
+    boolean testValue(Tester t) {
+        return t.checkExpect(this.cellE2.value(), 43) &&
+                t.checkExpect(this.cellC2.value(), 251) &&
+                t.checkExpect(this.cellD2.value(), 36);
+    }
     
-    IData c1data = new Number (1);
-    Cell cellC1 = new Cell ("C", 1, this.c1data);
+    // tests the countArgs method
+    boolean testcountArgs(Tester t) {
+        return t.checkExpect(this.cellE2.countArgs(), 2) &&
+                t.checkExpect(this.cellC2.countArgs(), 3) &&
+                t.checkExpect(this.cellD2.countArgs(), 5);
+    }
+
+    // tests the countFunc method
+    boolean testcountFunc(Tester t) {
+        return t.checkExpect(this.cellE2.countFuns(), 1) &&
+                t.checkExpect(this.cellC2.countFuns(), 2) &&
+                t.checkExpect(this.cellD2.countFuns(), 4);
+    }
     
-    IData d1data = new Number (27);
-    Cell cellD1 = new Cell ("D", 1, this.d1data);
+    // tests the functionDepth method
+    boolean testfunctionDepth(Tester t) {
+        return t.checkExpect(this.cellE2.formulaDepth(), 1) &&
+                t.checkExpect(this.cellC2.formulaDepth(), 2) &&
+                t.checkExpect(this.cellD2.formulaDepth(), 4);
+    }
     
-    IData e1data = new Number (16);
-    Cell cellE1 = new Cell ("E", 1, this.e1data);
-
-    IData e2data = new Formula (this.cellE1, this.cellD1, this.sum);
-    Cell cellE2 = new Cell ("E", 2, this.e2data);
-
-    IData a3data = new Formula (this.cellA1, this.cellB1, this.mul);
-    Cell cellA3 = new Cell ("A", 3, this.a3data);
-
-    IData c2data = new Formula (this.cellA3, this.cellC1, this.sum);
-    Cell cellC2 = new Cell ("C", 2, this.c2data);
-
-    IData c4data = new Formula (this.cellE1, this.cellD1, this.mul);
-    Cell cellC4 = new Cell ("C", 4, this.c4data);
-
-    IData b3data = new Formula (this.cellE1, this.cellA3, this.mod);
-    Cell cellB3 = new Cell ("B", 3, this.b3data);
-
-    IData d2data = new Formula (this.cellC2, this.cellE2, this.mod);
-    Cell cellD2 = new Cell ("D", 2, this.d2data);
-
-    IData d3data = new Formula (this.cellD2, this.cellA1, this.mul);
-    Cell cellD3 = new Cell ("D", 3, this.d3data);
-
-    IData d4data = new Formula (this.cellC4, this.cellA1, this.sum);
-    Cell cellD4 = new Cell ("D", 4, this.d4data);
-
-    IData c5data = new Formula (this.cellD4, this.cellB3, this.sum);
-    Cell cellC5 = new Cell ("C", 5, this.c5data);
-    
-    IData a5data = new Formula (this.cellD3, this.cellC5, this.mod);
-    Cell cellA5 = new Cell ("A", 5, this.a5data);
-
-    /* Example Cells
-       
-       IData e4data = new Formula (this.cellD4, this.cellC4, this.mul);
-       Cell cellE4 = new Cell ("E", 4, this.e4data);
-       
-       IData b5data = new Formula (this.cellC2 this.cellA5, this.mod);
-       Cell cellB5 = new Cell ("B", 5, this.b5data);
-       
-       IData c3data = new Formula (this.cellE2, this.cellB3, this.sum);
-       Cell cellC3 = new Cell ("C", 3, this.c3data);
-    */
-    
-    /* You should test these cases to make sure they're correct
-       cellD2.value();
-       cellB3.value();
-       cellD2.countArgs();
-       cellB3.countArgs();
-       cellD2.countFuns();
-       cellB3.countFuns();
-       cellD2.formulaDepth();
-       cellB3.formulaDepth();
-       cellD2.formula(0);
-       cellD2.formula(1);
-       cellD2.formula(2);
-       cellD2.formula(3);
-       cellD2.formula(4);
-
-       Anticipated results: 
-       36
-       16
-       5
-       3
-       4
-       2
-       3
-       2
-       D2
-       mod(C2, E2)
-       mod(sum(A3, C1), sum(E1, D1))
-       mod(sum(mul(A1, B1), 1), sum(16, 27))
-       mod(sum(mul(25, 10), 1), sum(16, 27))
-    */
+    // tests the Formula method
+    boolean testFormula(Tester t) {
+        return t.checkExpect(this.cellE2.formula(2), "sum(16, 27)") &&
+                t.checkExpect(this.cellC2.formula(2), "sum(mul(A1, B1), 1)") &&
+                t.checkExpect(this.cellD2.formula(3), 
+                        "mod(sum(mul(A1, B1), 1), sum(16, 27))");      
+    }
 }
