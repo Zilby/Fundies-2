@@ -1,0 +1,225 @@
+import java.util.*;
+import tester.*;
+import javalib.impworld.*;
+import java.awt.Color;
+import javalib.worldimages.*;
+
+//represents a list of objects
+interface IList<T> {
+}
+
+// represents an empty list
+class Empty<T> implements IList<T> {
+}
+
+// represents a list with an element of a list
+class Cons<T> implements IList<T> {
+    // The data of this node
+    T first;
+    // the rest of the list
+    IList<T> rest;
+
+    Cons(T first, IList<T> rest) {
+        this.first = first;
+        this.rest = rest;
+    }
+}
+
+// Represents a single square of the game area
+class Cell {
+    // represents absolute height of this cell, in feet
+    double height;
+    // In logical coordinates, with the origin at the top-left corner of the
+    // screen
+    int x;
+    int y;
+    // the four adjacent cells to this one
+    Cell left;
+    Cell top;
+    Cell right;
+    Cell bottom;
+    // reports whether this cell is flooded or not
+    boolean isFlooded;
+
+    Cell(double height, int x, int y) {
+        this.height = height;
+        this.x = x;
+        this.y = y;
+        this.left = null;
+        this.right = null;
+        this.top = null;
+        this.bottom = null;
+    }
+
+    // sets the left cell to the given value
+    void setLeft(Cell left) {
+        this.left = left;
+    }
+
+    // sets the right cell to the given value
+    void setRight(Cell right) {
+        this.right = right;
+    }
+
+    // sets the top cell to the given value
+    void setTop(Cell top) {
+        this.top = top;
+    }
+
+    // sets the bottom cell to the given value
+    void setBottom(Cell bottom) {
+        this.bottom = bottom;
+    }
+}
+
+class OceanCell extends Cell {
+
+    OceanCell(double height, int x, int y) {
+        super(height, x, y);
+    }
+}
+
+class ForbiddenIslandWorld extends World {
+    // Defines an int constant
+    static final int ISLAND_SIZE = 64;
+    // All the cells of the game, including the ocean
+    IList<Cell> board = new Empty<Cell>();
+    // the current height of the ocean
+    int waterHeight;
+    // keeps track of manhattan distances for each cell
+    ArrayList<ArrayList<Double>> distances = new ArrayList<ArrayList<Double>>();
+    // all the cells for the diamond islands in a 2D array
+    ArrayList<ArrayList<Cell>> cells = new ArrayList<ArrayList<Cell>>();
+    // all the cells for the randomly generated terrain in a 2D array
+    ArrayList<ArrayList<Cell>> terrain = new ArrayList<ArrayList<Cell>>();
+
+    
+    
+    // Constructor initializes the manhattan distances which is used to
+    // initialize
+    // the cells arraylist, which is then finished by giving the cells their
+    // appropriate
+    // adjacent cells
+    ForbiddenIslandWorld() {
+        for (double i = 0; i <= ForbiddenIslandWorld.ISLAND_SIZE; i++) {
+            ArrayList<Double> temp = new ArrayList<Double>();
+            for (double j = 0; j <= ForbiddenIslandWorld.ISLAND_SIZE; j++) {
+                temp.add(Math.abs((ForbiddenIslandWorld.ISLAND_SIZE / 2) - i)
+                        + Math.abs((ForbiddenIslandWorld.ISLAND_SIZE / 2) - j));
+            }
+            distances.add(temp);
+        }
+        int row = 0;
+        int column = 0;
+        for (ArrayList<Double> a : distances) {
+            ArrayList<Cell> temp = new ArrayList<Cell>();
+            for (Double d : a) {
+                if (d <= ForbiddenIslandWorld.ISLAND_SIZE / 2) {
+                    temp.add(new Cell((((ForbiddenIslandWorld.ISLAND_SIZE / 2) - d)), row, column));
+                } else {
+                    temp.add(new OceanCell(0.0, row, column));
+                }
+                column++;
+            }
+            column = 0;
+            row++;
+            cells.add(temp);
+        }
+        row = 0;
+        column = 0;
+        for (ArrayList<Cell> a : cells) {
+            for (Cell c : a) {
+                if (row - 1 < 0) {
+                    c.setLeft(c);
+                } else {
+                    c.setLeft(cells.get(row - 1).get(column));
+                }
+                if (row + 1 > ForbiddenIslandWorld.ISLAND_SIZE) {
+                    c.setRight(c);
+                } else {
+                    c.setRight(cells.get(row + 1).get(column));
+                }
+                if (column - 1 < 0) {
+                    c.setTop(c);
+                } else {
+                    c.setTop(cells.get(row).get(column - 1));
+                }
+                if (column + 1 > ForbiddenIslandWorld.ISLAND_SIZE) {
+                    c.setBottom(c);
+                } else {
+                    c.setBottom(cells.get(row).get(column + 1));
+                }
+                column++;
+            }
+            column = 0;
+            row++;
+        }
+        for (ArrayList<Cell> a : cells) {
+            for (Cell c : a) {
+                board = new Cons<Cell>(c, board);
+            }
+        }
+        row = 0;
+        column = 0;
+        /*
+        for (ArrayList<Double> a : distances) {
+            for (Double d : a) {
+                distances.get(row).set(column, 0.0);
+                row++;
+            }
+            column++;
+        }
+        */
+    }
+
+    // draws the world scene
+    public WorldScene makeScene() {
+        WorldScene w1 = new WorldScene(ForbiddenIslandWorld.ISLAND_SIZE * 10, ForbiddenIslandWorld.ISLAND_SIZE * 10);
+        float increment1 = 128 / (ForbiddenIslandWorld.ISLAND_SIZE / 2);
+        float increment2 = 188 / (ForbiddenIslandWorld.ISLAND_SIZE / 2);
+        for (ArrayList<Cell> a : cells) {
+            for (Cell c : a) {
+                Color col;
+                if (c.height == 0.0) {
+                    col = Color.BLUE;
+                } else {
+                    col = new Color((int) (increment2 * c.height) + 60, (int) (increment1 * c.height) + 120,
+                            (int) (increment2 * c.height) + 60);
+                }
+                w1.placeImageXY(new RectangleImage(10, 10, OutlineMode.SOLID, col), c.x * 10, c.y * 10);
+            }
+        }
+        WorldScene w2 = new WorldScene(ForbiddenIslandWorld.ISLAND_SIZE * 10, ForbiddenIslandWorld.ISLAND_SIZE * 10);
+        Random r = new Random();
+        int rand = r.nextInt(32);
+        for (ArrayList<Cell> a : cells) {
+            for (Cell c : a) {
+                Color col;
+                if (c.height == 0.0) {
+                    col = Color.BLUE;
+                } else {
+                    rand = r.nextInt(32);
+                    col = new Color((int) (increment2 * (rand + 1)) + 60, (int) (increment1 * (rand + 1)) + 120,
+                            (int) (increment2 * (rand + 1)) + 60);
+                }
+                w2.placeImageXY(new RectangleImage(10, 10, OutlineMode.SOLID, col), c.x * 10, c.y * 10);
+            }
+        }
+        // change to w2 for random heights
+        System.out.println(r.nextInt(2));
+        System.out.println(r.nextInt(2));
+        System.out.println(r.nextInt(2));
+        System.out.println(r.nextInt(2));
+        System.out.println(r.nextInt(2));
+        System.out.println(r.nextInt(2));
+        return w2;
+    }
+}
+
+// for testing purposes
+class ExamplesWorld {
+    void testGame(Tester t) {
+        ForbiddenIslandWorld f = new ForbiddenIslandWorld();
+        f.bigBang(ForbiddenIslandWorld.ISLAND_SIZE * 10, ForbiddenIslandWorld.ISLAND_SIZE * 10);
+    }
+}

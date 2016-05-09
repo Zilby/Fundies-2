@@ -1,0 +1,237 @@
+import tester.Tester;
+
+public class Dequeue<T> {
+    Sentinel<T> header;
+    
+    Dequeue() {
+        this.header = new Sentinel<T>();
+    }
+    
+    Dequeue(Sentinel<T> header) {
+        this.header = header;
+    }
+    
+    int size() {
+        return this.header.size();
+    }
+    
+    Dequeue<T> addAtHead(T t) {
+        header.addAtHead(t);
+        return this;
+    }
+    
+    Dequeue<T> addAtTail(T t) {
+        header.addAtTail(t);
+        return this;
+    }
+    
+    Dequeue<T> removeFromHead() {
+        if (this.size() == 0) {
+            throw new RuntimeException("Cannot remove from an empty list");
+        }
+        header.removeFromHead();
+        return this;
+    }
+    
+    Dequeue<T> removeFromTail() {
+        if (this.size() == 0) {
+            throw new RuntimeException("Cannot remove from an empty list");
+        }
+        header.removeFromTail();
+        return this;
+    }
+    
+    ANode<T> find(IPred<T> p) {
+        return header.find(p, true);
+    }
+    
+    Dequeue<T> removeNode(ANode<T> a) {
+        if (!a.equals(header)) {
+            header.removeNodeFirst(a);
+        }
+        return this;
+    }
+}
+
+//Represents a boolean-valued question over values of type T
+interface IPred<T> {
+    boolean apply(T t);
+}
+
+class isSixty implements IPred<Integer> {
+    public boolean apply(Integer i) { 
+        return i > 60;
+    }
+}
+
+class isABC implements IPred<String> {
+    public boolean apply(String s) { 
+        return s.equals("abc");
+    }
+}
+
+class isJohn implements IPred<String> {
+    public boolean apply(String s) { 
+        return s.equals("john");
+    }
+}
+
+abstract class ANode<T> {
+    ANode<T> next;
+    ANode<T> prev;
+    
+    int size(ANode<T> s) {
+        if (this.next.equals(s)) {
+            return 1;
+        }
+        else {
+            return 1 + this.next.size(s);
+        }
+    }
+    
+    void remove() {
+        this.prev.next = this.next;
+        this.next.prev = this.prev;
+    }
+    
+    ANode<T> find(IPred<T> p) {
+        return this;
+    }
+    
+    void removeNode(ANode<T> a) {
+        if (this.equals(a)) {
+            this.remove();
+        }
+        else {
+            this.next.removeNode(a);
+        }
+    }
+}
+
+class Sentinel<T> extends ANode<T> {
+    
+    Sentinel() {
+        this.next = this;
+        this.prev = this;
+    }
+    
+    int size() {
+        if (this.next.equals(this)) {
+            return 0;
+        }
+        return this.next.size(this);
+    }
+    
+    void addAtHead(T t) {
+        new Node<T>(t, this.next, this);
+    }
+    
+    void addAtTail(T t) {
+        new Node<T>(t, this, this.prev);
+    }
+    
+    void removeFromHead() {
+        this.next.remove();
+    }
+    
+    void removeFromTail() {
+        this.prev.remove();
+    }
+    
+    ANode<T> find(IPred<T> p, boolean b) {
+        return this.next.find(p);
+    }
+    
+    void removeNodeFirst(ANode<T> a) {
+        this.next.removeNode(a);
+    }
+    
+    void removeNode(ANode<T> a) {}
+}
+
+class Node<T> extends ANode<T> {
+    T data;
+    
+    Node(T data) {
+        this.data = data;
+        this.next = null;
+        this.prev = null;
+    }
+    
+    Node(T data, ANode<T> next, ANode<T> prev) {
+        if ((next == null) || (prev == null)) { 
+            throw new IllegalArgumentException("Cannot accept null node");
+        }
+        this.data = data; 
+        this.next = next;
+        this.prev = prev;
+        prev.next = this;
+        next.prev = this;
+    }   
+    
+    ANode<T> find(IPred<T> p) {
+        if (p.apply(this.data)) {
+            return this;
+        }
+        else {
+            return this.next.find(p);
+        }
+    }
+}
+
+class ExamplesDeque {
+    Dequeue<String> deque1;
+    Sentinel<String> S2;
+    Node<String> N21;
+    Node<String> N22;
+    Node<String> N23;
+    Node<String> N24;
+    Dequeue<String> deque2;
+    Sentinel<Integer> S3;
+    Node<Integer> N31;
+    Node<Integer> N32;
+    Node<Integer> N33;
+    Node<Integer> N34;
+    Node<Integer> N35;
+    Dequeue<Integer> deque3;
+    
+    void initData() {
+        deque1 = new Dequeue<String>();
+        S2 = new Sentinel<String>();
+        N21 = new Node<String>("abc", S2, S2);
+        N22 = new Node<String>("bcd", S2, N21);
+        N23 = new Node<String>("cde", S2, N22);
+        N24 = new Node<String>("def", S2, N23);
+        deque2 = new Dequeue<String>(S2);
+        S3 = new Sentinel<Integer>();
+        N31 = new Node<Integer>(53, S3, S3);
+        N32 = new Node<Integer>(21, S3, N31);
+        N33 = new Node<Integer>(99, S3, N32);
+        N34 = new Node<Integer>(70, S3, N33);
+        N35 = new Node<Integer>(58, S3, N34);
+        deque3 = new Dequeue<Integer>(S3);
+    }
+    
+    void testSize(Tester t) {
+        initData();
+        t.checkExpect(this.deque1.size(), 0);
+        t.checkExpect(this.deque2.size(), 4);
+        t.checkExpect(this.deque3.size(), 5);
+    }
+    
+    //Needs Tests
+    void testAddRemove(Tester t) {
+        initData();
+        this.deque1.addAtHead("john");
+        this.deque1.addAtTail("peter");
+        t.checkExpect(this.deque1.header.next.data, expected)
+    }
+    
+    void testFind(Tester t) {
+        initData();
+        t.checkExpect(this.deque1.find(new isABC()), this.deque1.header);
+        t.checkExpect(this.deque2.find(new isABC()), this.N21);
+        t.checkExpect(this.deque2.find(new isJohn()), this.S2);
+        t.checkExpect(this.deque3.find(new isSixty()), this.N33);
+    }
+}

@@ -1,0 +1,205 @@
+import java.util.*;
+import tester.*;
+import javalib.impworld.*;
+import java.awt.Color;
+import javalib.worldimages.*;
+
+//for iterating over our list
+class ListIterator<T> implements Iterator<T> {
+    IList<T> curr;
+
+    ListIterator(IList<T> curr) {
+        this.curr = curr;
+    }
+
+    // returns true if there's at least one value left in this iterator
+    public boolean hasNext() {
+        return curr.hasNext();
+    }
+
+    // returns the next value and advances the iterator
+    public T next() {
+        T temp = this.curr.getNext().getData();
+        this.curr = this.curr.getNext();
+        return temp;
+    }
+
+    // no need to implement this since it is never used
+    public void remove() {
+        throw new UnsupportedOperationException();
+    }
+}
+
+// represents a list of objects
+interface IList<T> extends Iterable<T> {
+    // determines if list is empty
+    boolean isEmpty();
+
+    // for iterating over the list
+    Iterator<T> iterator();
+
+    // appends an element to the list
+    IList<T> append(IList<T> l);
+
+    // checks if list has another value left
+    boolean hasNext();
+
+    // gets data value at this point
+    T getData();
+
+    // gets the rest of the list
+    IList<T> getNext();
+}
+
+// represents an empty list
+class Empty<T> implements IList<T>, Iterable<T> {
+    // determines if list is empty
+    public boolean isEmpty() {
+        return true;
+    }
+
+    // for iterating over the list
+    public Iterator<T> iterator() {
+        return new ListIterator<T>(this);
+    }
+
+    // appends an element to the list
+    public IList<T> append(IList<T> l) {
+        return l;
+    }
+
+    // checks if list has another value left
+    public boolean hasNext() {
+        return false;
+    }
+
+    // gets data value at this point
+    public T getData() {
+        return null;
+    }
+
+    // gets the rest of the list
+    public IList<T> getNext() {
+        throw new UnsupportedOperationException();
+    }
+}
+
+// represents a list with an element of a list
+class Cons<T> implements IList<T>, Iterable<T> {
+    // The data of this node
+    T first;
+    // the rest of the list
+    IList<T> rest;
+
+    Cons(T first, IList<T> rest) {
+        this.first = first;
+        this.rest = rest;
+    }
+
+    // determines if list is empty
+    public boolean isEmpty() {
+        return false;
+    }
+
+    // for iterating over the list
+    public Iterator<T> iterator() {
+        return new ListIterator<T>(this);
+    }
+
+    // appends an element to the list
+    public IList<T> append(IList<T> l) {
+        if (rest.isEmpty()) {
+            rest = l;
+        } 
+        else {
+            rest.append(l);
+        }
+        return this;
+    }
+
+    // checks if list has another value left
+    public boolean hasNext() {
+        return !this.rest.isEmpty();
+    }
+
+    // gets data value at this point
+    public T getData() {
+        return this.first;
+    }
+
+    // gets the rest of the list
+    public IList<T> getNext() {
+        return this.rest;
+    }
+}
+
+// Represents a single square of the game area
+class Cell {
+    // In logical coordinates, with the origin at the top-left corner of the
+    // screen
+    int x;
+    int y;
+    // the four adjacent cells to this one
+    Cell left;
+    Cell top;
+    Cell right;
+    Cell bottom;
+
+    Cell(double height, int x, int y) {
+        this.x = x;
+        this.y = y;
+        this.left = null;
+        this.right = null;
+        this.top = null;
+        this.bottom = null;
+    }
+
+    // sets the left cell to the given value
+    void setLeft(Cell left) {
+        this.left = left;
+    }
+
+    // sets the right cell to the given value
+    void setRight(Cell right) {
+        this.right = right;
+    }
+
+    // sets the top cell to the given value
+    void setTop(Cell top) {
+        this.top = top;
+    }
+
+    // sets the bottom cell to the given value
+    void setBottom(Cell bottom) {
+        this.bottom = bottom;
+    }
+}
+
+// represents our world state
+class Maze extends World {
+    // Defines an int constant
+    static final int SIZE = 128;
+    // All the cells of the game
+    IList<Cell> board = new Empty<Cell>();
+    // whether the game has ended
+    boolean gameEnd;
+
+    Maze() {
+        this.gameEnd = false;
+    }
+
+    // draws the world scene
+    public WorldScene makeScene() {
+    }
+
+    public void onTick() {
+    }
+
+    public void onKeyEvent(String ke) {
+    }
+
+}
+
+// for testing purposes
+class ExamplesWorld {
+}

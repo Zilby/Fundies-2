@@ -1,0 +1,623 @@
+import java.util.*;
+import tester.*;
+import javalib.impworld.*;
+import java.awt.Color;
+import javalib.worldimages.*;
+
+class ListIterator<T> implements Iterator<T> {
+    IList<T> curr;
+
+    ListIterator(IList<T> curr) {
+        this.curr = curr;
+    }
+
+    // returns true if there's at least one value left in this iterator
+    public boolean hasNext() {
+        return curr.hasNext();
+    }
+
+    // returns the next value and advances the iterator
+    public T next() {
+        T temp = this.curr.getNext().getData();
+        this.curr = this.curr.getNext();
+        return temp;
+    }
+
+    // IGNORE THIS FOR NOW
+    public void remove() {
+        throw new UnsupportedOperationException();
+    }
+}
+
+// represents a list of objects
+interface IList<T> extends Iterable<T> {
+    // determines if list is empty
+    boolean isEmpty();
+
+    Iterator<T> iterator();
+
+    // appends an element to the list
+    IList<T> append(IList<T> l);
+
+    boolean hasNext();
+
+    T getData();
+
+    IList<T> getNext();
+}
+
+// represents an empty list
+class Empty<T> implements IList<T>, Iterable<T> {
+    // determines if list is empty
+    public boolean isEmpty() {
+        return true;
+    }
+
+    public Iterator<T> iterator() {
+        return new ListIterator<T>(this);
+    }
+
+    // appends an element to the list
+    public IList<T> append(IList<T> l) {
+        return l;
+    }
+
+    public boolean hasNext() {
+        return false;
+    }
+
+    public T getData() {
+        return null;
+    }
+
+    public IList<T> getNext() {
+        throw new UnsupportedOperationException();
+    }
+}
+
+// represents a list with an element of a list
+class Cons<T> implements IList<T>, Iterable<T> {
+    // The data of this node
+    T first;
+    // the rest of the list
+    IList<T> rest;
+
+    Cons(T first, IList<T> rest) {
+        this.first = first;
+        this.rest = rest;
+    }
+
+    // determines if list is empty
+    public boolean isEmpty() {
+        return false;
+    }
+
+    public Iterator<T> iterator() {
+        return new ListIterator<T>(this);
+    }
+
+    // appends an element to the list
+    public IList<T> append(IList<T> l) {
+        if (rest.isEmpty()) {
+            rest = l;
+        } else {
+            rest.append(l);
+        }
+        return this;
+    }
+
+    public boolean hasNext() {
+        return !this.rest.isEmpty();
+    }
+
+    public T getData() {
+        return this.first;
+    }
+
+    public IList<T> getNext() {
+        return this.rest;
+    }
+}
+
+// Represents a single square of the game area
+class Cell {
+    // represents absolute height of this cell, in feet
+    double height;
+    // In logical coordinates, with the origin at the top-left corner of the
+    // screen
+    int x;
+    int y;
+    // the four adjacent cells to this one
+    Cell left;
+    Cell top;
+    Cell right;
+    Cell bottom;
+    // reports whether this cell is flooded or not
+    boolean isFlooded;
+    boolean isWater;
+
+    Cell(double height, int x, int y) {
+        this.height = height;
+        this.isFlooded = false;
+        this.isWater = false;
+        this.x = x;
+        this.y = y;
+        this.left = null;
+        this.right = null;
+        this.top = null;
+        this.bottom = null;
+    }
+
+    // sets the left cell to the given value
+    void setLeft(Cell left) {
+        this.left = left;
+    }
+
+    // sets the right cell to the given value
+    void setRight(Cell right) {
+        this.right = right;
+    }
+
+    // sets the top cell to the given value
+    void setTop(Cell top) {
+        this.top = top;
+    }
+
+    // sets the bottom cell to the given value
+    void setBottom(Cell bottom) {
+        this.bottom = bottom;
+    }
+}
+
+// represents a cell of water
+class OceanCell extends Cell {
+
+    OceanCell(double height, int x, int y) {
+        super(height, x, y);
+        this.isFlooded = true;
+        this.isWater = true;
+    }
+}
+
+class Pilot {
+    Cell location;
+
+    Pilot(Cell location) {
+        this.location = location;
+    }
+
+    // returns the image for the pilot
+    WorldImage pilotImage() {
+        return new FromFileImage("1024px-Pacman_HD.png");
+    }
+
+    // moves the pilot in our world given
+    // a corresponding key event
+    public void moveOnKey(String ke) {
+        if (ke.equals("left")) {
+            if (!(this.location.left.isFlooded)) {
+                this.location = location.left;
+            }
+        } else if (ke.equals("up")) {
+            if (!(this.location.top.isFlooded)) {
+                this.location = location.top;
+            }
+        } else if (ke.equals("right")) {
+            if (!(this.location.right.isFlooded)) {
+                this.location = location.right;
+            }
+        } else if (ke.equals("down")) {
+            if (!(this.location.bottom.isFlooded)) {
+                this.location = location.bottom;
+            }
+        }
+    }
+}
+
+class Target {
+    Cell location;
+
+    Target(Cell location) {
+        this.location = location;
+    }
+
+    // returns the image for the part
+    WorldImage targetImage() {
+        return new FromFileImage("pellet.png");
+    }
+
+    boolean sameLocation(Cell c) {
+        return c.equals(this.location);
+    }
+}
+
+class HelicopterTarget extends Target {
+    HelicopterTarget(Cell location) {
+        super(location);
+    }
+
+    WorldImage targetImage() {
+        return new FromFileImage("helicopter.png");
+    }
+}
+
+// represents our world state
+class ForbiddenIslandWorld extends World {
+    // Defines an int constant
+    static final int ISLAND_SIZE = 64;
+    // All the cells of the game, including the ocean
+    IList<Cell> board = new Empty<Cell>();
+    // the number of ticks since last water rise
+    int ticks;
+    // the height of the water
+    int waterHeight;
+    // the pilot of our game
+    Pilot p;
+    // our helicopter parts
+    ArrayList<Target> targets = new ArrayList<Target>();
+    // our helicopter
+    HelicopterTarget heli;
+    // keeps track of manhattan distances for cells and the
+    // heights of each cell for terrain
+    // ArrayList<ArrayList<Double>> nums = new ArrayList<ArrayList<Double>>();
+    // all the cells for the 2D array
+    // ArrayList<ArrayList<Cell>> cells = new ArrayList<ArrayList<Cell>>();
+
+    ForbiddenIslandWorld() {
+        generateMountain();
+        this.ticks = 0;
+        this.waterHeight = 0;
+    }
+
+    ForbiddenIslandWorld(int i) {
+        if (i == 0) {
+            generateMountain();
+        } else if (i == 1) {
+            generateRandom();
+        } else {
+            generateTerrain();
+        }
+        this.ticks = 0;
+        this.waterHeight = 0;
+    }
+
+    // initializes the nums array to ISLAND_SIZExISLAND_SIZE rows and
+    // columns, initializes all values to manhattan distance;
+    ArrayList<ArrayList<Double>> initializeNums() {
+        ArrayList<ArrayList<Double>> nums = new ArrayList<ArrayList<Double>>();
+        for (double i = 0; i <= ForbiddenIslandWorld.ISLAND_SIZE; i++) {
+            ArrayList<Double> temp = new ArrayList<Double>();
+            for (double j = 0; j <= ForbiddenIslandWorld.ISLAND_SIZE; j++) {
+                temp.add(Math.abs((ForbiddenIslandWorld.ISLAND_SIZE / 2) - i)
+                        + Math.abs((ForbiddenIslandWorld.ISLAND_SIZE / 2) - j));
+            }
+            nums.add(temp);
+        }
+        return nums;
+    }
+
+    // connects the cells of a given array together (ie: assigns values to
+    // left, right, top and bottom)
+    ArrayList<ArrayList<Cell>> connectCells(ArrayList<ArrayList<Cell>> l) {
+        int row = 0;
+        int column = 0;
+        for (ArrayList<Cell> a : l) {
+            for (Cell c : a) {
+                if (row - 1 < 0) {
+                    c.setLeft(c);
+                } else {
+                    c.setLeft(l.get(row - 1).get(column));
+                }
+                if (row + 1 > ForbiddenIslandWorld.ISLAND_SIZE) {
+                    c.setRight(c);
+                } else {
+                    c.setRight(l.get(row + 1).get(column));
+                }
+                if (column - 1 < 0) {
+                    c.setTop(c);
+                } else {
+                    c.setTop(l.get(row).get(column - 1));
+                }
+                if (column + 1 > ForbiddenIslandWorld.ISLAND_SIZE) {
+                    c.setBottom(c);
+                } else {
+                    c.setBottom(l.get(row).get(column + 1));
+                }
+                column++;
+            }
+            column = 0;
+            row++;
+        }
+        return l;
+    }
+
+    Target generatePart(ArrayList<ArrayList<Cell>> l) {
+        Random r = new Random();
+        int row = 10 + r.nextInt(ForbiddenIslandWorld.ISLAND_SIZE - 20);
+        int col = 10 + r.nextInt(ForbiddenIslandWorld.ISLAND_SIZE - 20);
+        Cell c = l.get(row).get(col);
+        if (c.isFlooded) {
+            return generatePart(l);
+        } else {
+            return new Target(c);
+        }
+    }
+
+    // generates the diamond island using the cell arraylist
+    // (assumes nums has been initialized)
+    void generateMountain() {
+        ArrayList<ArrayList<Double>> nums = initializeNums();
+        ArrayList<ArrayList<Cell>> cells = new ArrayList<ArrayList<Cell>>();
+        int row = 0;
+        int column = 0;
+        for (ArrayList<Double> a : nums) {
+            ArrayList<Cell> temp = new ArrayList<Cell>();
+            for (Double d : a) {
+                if (d <= ForbiddenIslandWorld.ISLAND_SIZE / 2) {
+                    temp.add(new Cell((((ForbiddenIslandWorld.ISLAND_SIZE / 2) - d)), row, column));
+                } else {
+                    temp.add(new OceanCell(0.0, row, column));
+                }
+                column++;
+            }
+            column = 0;
+            row++;
+            cells.add(temp);
+        }
+        cells = connectCells(cells);
+        p = new Pilot(cells.get(ForbiddenIslandWorld.ISLAND_SIZE / 2).get(ForbiddenIslandWorld.ISLAND_SIZE / 2));
+        for (int i = 0; i < 4; i++) {
+            targets.add(generatePart(cells));
+        }
+        heli = new HelicopterTarget(
+                cells.get(ForbiddenIslandWorld.ISLAND_SIZE / 2).get(ForbiddenIslandWorld.ISLAND_SIZE / 2));
+        for (ArrayList<Cell> a : cells) {
+            for (Cell c : a) {
+                board.append(new Cons<Cell>(c, new Empty<Cell>()));
+            }
+        }
+    }
+
+    // generates the random height island using the rCell arraylist
+    // (assumes nums has been initialized)
+    void generateRandom() {
+        ArrayList<ArrayList<Double>> nums = initializeNums();
+        ArrayList<ArrayList<Cell>> cells = new ArrayList<ArrayList<Cell>>();
+        int row = 0;
+        int column = 0;
+        Random r = new Random();
+        int rand = 0;
+        for (ArrayList<Double> a : nums) {
+            ArrayList<Cell> temp = new ArrayList<Cell>();
+            for (Double d : a) {
+                if (d <= ForbiddenIslandWorld.ISLAND_SIZE / 2) {
+                    rand = r.nextInt(32) + 1;
+                    temp.add(new Cell(rand, row, column));
+                } else {
+                    temp.add(new OceanCell(0.0, row, column));
+                }
+                column++;
+            }
+            column = 0;
+            row++;
+            cells.add(temp);
+        }
+        cells = connectCells(cells);
+        p = new Pilot(cells.get(ForbiddenIslandWorld.ISLAND_SIZE / 2).get(ForbiddenIslandWorld.ISLAND_SIZE / 2));
+        for (int i = 0; i < 6; i++) {
+            targets.add(generatePart(cells));
+        }
+        heli = new HelicopterTarget(
+                cells.get(ForbiddenIslandWorld.ISLAND_SIZE / 2).get(ForbiddenIslandWorld.ISLAND_SIZE / 2));
+        for (ArrayList<Cell> a : cells) {
+            for (Cell c : a) {
+                board.append(new Cons<Cell>(c, new Empty<Cell>()));
+            }
+        }
+    }
+
+    // generates the random terrain using the terrain arraylist
+    void generateTerrain() {
+        ArrayList<ArrayList<Double>> nums = initializeNums();
+        ArrayList<ArrayList<Cell>> cells = new ArrayList<ArrayList<Cell>>();
+        int row = 0;
+        int column = 0;
+        for (ArrayList<Double> a : nums) {
+            for (Double d : a) {
+                if (row == ForbiddenIslandWorld.ISLAND_SIZE / 2 || column == ForbiddenIslandWorld.ISLAND_SIZE / 2) {
+                    nums.get(row).set(column, 1.0);
+                } else {
+                    nums.get(row).set(column, 0.0);
+                }
+                row++;
+            }
+            row = 0;
+            column++;
+        }
+        nums.get(ForbiddenIslandWorld.ISLAND_SIZE / 2).set(ForbiddenIslandWorld.ISLAND_SIZE / 2,
+                ForbiddenIslandWorld.ISLAND_SIZE / 2.0);
+        nums = subdivide(0, ForbiddenIslandWorld.ISLAND_SIZE, 0, ForbiddenIslandWorld.ISLAND_SIZE, true, nums);
+        row = 0;
+        column = 0;
+        for (ArrayList<Double> a : nums) {
+            ArrayList<Cell> temp = new ArrayList<Cell>();
+            for (Double d : a) {
+                if (d > 0) {
+                    temp.add(new Cell(d, row, column));
+                } else {
+                    temp.add(new OceanCell(d, row, column));
+                }
+                column++;
+            }
+            column = 0;
+            row++;
+            cells.add(temp);
+        }
+        cells = connectCells(cells);
+        p = new Pilot(cells.get(ForbiddenIslandWorld.ISLAND_SIZE / 2).get(ForbiddenIslandWorld.ISLAND_SIZE / 2));
+        for (int i = 0; i < 8; i++) {
+            targets.add(generatePart(cells));
+        }
+        heli = new HelicopterTarget(
+                cells.get(ForbiddenIslandWorld.ISLAND_SIZE / 2).get(ForbiddenIslandWorld.ISLAND_SIZE / 2));
+        for (ArrayList<Cell> a : cells) {
+            for (Cell c : a) {
+                board.append(new Cons<Cell>(c, new Empty<Cell>()));
+            }
+        }
+    }
+
+    // the subdivision algorithm used to generate the random terrain
+    ArrayList<ArrayList<Double>> subdivide(int r1, int r2, int c1, int c2, boolean first,
+            ArrayList<ArrayList<Double>> d) {
+        Random r = new Random();
+        int i = c2 - c1;
+        double tl = d.get(r1).get(c1);
+        double tr = d.get(r1).get(c2);
+        double bl = d.get(r2).get(c1);
+        double br = d.get(r2).get(c2);
+        if (!first && i > 1) {
+            d.get((r1 + r2) / 2).set((c1 + c2) / 2, ((tl + tr + bl + br) / 4) + r.nextInt(i) - r.nextInt(i));
+        }
+        if (i > 1) {
+            d.get(r1).set((c1 + c2) / 2, ((tl + tr) / 2) + r.nextInt(2) - r.nextInt(3));
+            d.get(r2).set((c1 + c2) / 2, ((bl + br) / 2) + r.nextInt(2) - r.nextInt(3));
+            d.get((r1 + r2) / 2).set(c1, ((tl + bl) / 2) + r.nextInt(2) - r.nextInt(3));
+            d.get((r1 + r2) / 2).set(c2, ((tr + br) / 2) + r.nextInt(2) - r.nextInt(3));
+            subdivide(r1, (r1 + r2) / 2, c1, (c1 + c2) / 2, false, d);
+            subdivide((r1 + r2) / 2, r2, c1, (c1 + c2) / 2, false, d);
+            subdivide(r1, (r1 + r2) / 2, (c1 + c2) / 2, c2, false, d);
+            subdivide((r1 + r2) / 2, r2, (c1 + c2) / 2, c2, false, d);
+        }
+        return d;
+    }
+
+    // floods the cells, reducing height by 1 and then
+    // changing their isFlooded value if needed
+    void flood(IList<Cell> l) {
+        for (Cell c : l) {
+            if (!c.isWater) {
+                c.height--;
+            }
+        }
+        for (Cell c : l) {
+            if (!c.isWater) {
+                floodHelp(c);
+            }
+        }
+        waterHeight++;
+    }
+
+    // assists the flood function by flooding nearby cells
+    void floodHelp(Cell c) {
+        if (c.height <= 0 && !c.isFlooded
+                && (c.left.isFlooded || c.top.isFlooded || c.right.isFlooded || c.bottom.isFlooded)) {
+            c.isFlooded = true;
+            floodHelp(c.left);
+            floodHelp(c.top);
+            floodHelp(c.right);
+            floodHelp(c.bottom);
+        }
+    }
+
+    // generates colors for cells given their current state;
+    Color generateColor(Cell c) {
+        float increment1 = 128 / (ForbiddenIslandWorld.ISLAND_SIZE / 2);
+        float increment2 = 188 / (ForbiddenIslandWorld.ISLAND_SIZE / 2);
+        float increment3 = 100 / (ForbiddenIslandWorld.ISLAND_SIZE / 2);
+        float increment4 = 50 / (ForbiddenIslandWorld.ISLAND_SIZE / 2);
+        double h = c.height;
+        if (h < ForbiddenIslandWorld.ISLAND_SIZE / -2) {
+            h = ForbiddenIslandWorld.ISLAND_SIZE / -2;
+        } else if (h > ForbiddenIslandWorld.ISLAND_SIZE / 2) {
+            h = ForbiddenIslandWorld.ISLAND_SIZE / 2;
+        }
+        if (h <= 0.0) {
+            if (c.isWater) {
+                return new Color(0, 0, 120);
+            } else if (c.isFlooded) {
+                return new Color(0, 0, 120 + (int) (increment3 * h));
+            } else {
+                return new Color((int) (increment2 * -h) + 60, (int) (increment3 * h) + 120,
+                        (int) (increment4 * h) + 60);
+            }
+        } else {
+            return new Color((int) (increment2 * h) + 60, (int) (increment1 * h) + 120, (int) (increment2 * h) + 60);
+        }
+    }
+
+    // draws the world scene
+    public WorldScene makeScene() {
+        WorldScene w = new WorldScene(ForbiddenIslandWorld.ISLAND_SIZE * 10, ForbiddenIslandWorld.ISLAND_SIZE * 10);
+        if (this.targets.isEmpty() && p.location.equals(heli.location)) {
+            w.placeImageXY(new TextImage("You Win!", 80, Color.blue), ForbiddenIslandWorld.ISLAND_SIZE * 5,
+                    ForbiddenIslandWorld.ISLAND_SIZE * 4);
+        } else if (p.location.isFlooded) {
+            w.placeImageXY(new TextImage("You Lose!", 80, Color.red), ForbiddenIslandWorld.ISLAND_SIZE * 5,
+                    ForbiddenIslandWorld.ISLAND_SIZE * 4);
+        } else {
+            for (Cell c : board) {
+                Color col = generateColor(c);
+                w.placeImageXY(new RectangleImage(10, 10, OutlineMode.SOLID, col), c.x * 10, c.y * 10);
+            }
+            w.placeImageXY(this.heli.targetImage(), this.heli.location.x * 10, this.heli.location.y * 10);
+            for (Target t : targets) {
+                w.placeImageXY(t.targetImage(), t.location.x * 10, t.location.y * 10);
+            }
+            w.placeImageXY(this.p.pilotImage(), this.p.location.x * 10, this.p.location.y * 10);
+            w.placeImageXY(
+                    new TextImage("Time: " + ((ForbiddenIslandWorld.ISLAND_SIZE / 2) - this.waterHeight), 30,
+                            Color.red),
+                    (int) (ForbiddenIslandWorld.ISLAND_SIZE * 8.7), ForbiddenIslandWorld.ISLAND_SIZE / 2);
+        }
+        return w;
+    }
+
+    // causes changes (ie: flooding) on tick
+    public void onTick() {
+        if (this.ticks == 10) {
+            flood(board);
+            this.ticks = 0;
+        } else {
+            this.ticks++;
+        }
+    }
+
+    // moves the player and resets the level given key events
+    public void onKeyEvent(String ke) {
+        if (ke.equals("m") || ke.equals("r") || ke.equals("t")) {
+            targets = new ArrayList<Target>();
+            // nums = new ArrayList<ArrayList<Double>>();
+            // cells = new ArrayList<ArrayList<Cell>>();
+            board = new Empty<Cell>();
+            this.ticks = 0;
+            this.waterHeight = 0;
+            if (ke.equals("m")) {
+                generateMountain();
+            } else if (ke.equals("r")) {
+                generateRandom();
+            } else {
+                generateTerrain();
+            }
+        } else {
+            this.p.moveOnKey(ke);
+            Iterator<Target> i = targets.iterator();
+            while (i.hasNext()) {
+                Target t = i.next();
+                if (p.location.equals(t.location)) {
+                    i.remove();
+                }
+            }
+        }
+    }
+
+}
+
+// for testing purposes
+class ExamplesWorld {
+    void testGame(Tester t) {
+        ForbiddenIslandWorld f = new ForbiddenIslandWorld(2);
+        System.out.println(f.board.hasNext());
+        f.bigBang(ForbiddenIslandWorld.ISLAND_SIZE * 10, ForbiddenIslandWorld.ISLAND_SIZE * 10, 0.2);
+    }
+}

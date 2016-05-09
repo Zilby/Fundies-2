@@ -1,0 +1,111 @@
+import tester.*;
+
+public abstract class ABST<T> {
+    IComparator<T> order;
+    
+    ABST(IComparator<T> order) {
+        this.order = order;
+    }
+    
+    ABST<T> insert(T t) {
+        return new Node<T>(order, t);
+    }
+    
+    ABST<T> getLeftmost() {
+        throw new RuntimeException("No leftmost item of an empty tree");
+    }
+    
+    
+}
+
+interface IComparator<T> {
+    int compare(T t1, T t2);
+}
+
+class Leaf<T> extends ABST<T> {
+    Leaf(IComparator<T> order) {    
+        super(order);
+    }
+}
+
+class Node<T> extends ABST<T> {
+    T data;
+    ABST left;
+    ABST right;
+    Node<T> root;
+    
+    Node(IComparator<T> order, T data) {
+        super(order);
+        this.data = data;
+        this.left = new Leaf<T>(order);
+        this.right = new Leaf<T>(order);
+        this.root = this;
+    }
+    
+    Node(IComparator<T> order, T data, ABST left, ABST right, Node<T> root){
+        super(order);
+        this.data = data;
+        this.left = left;
+        this.right = right;
+        this.root = root;
+    }
+    
+    ABST<T> insert(T t) {
+        return insert(this.root, t);
+    }
+    
+    ABST<T> insert(Node<T> n, T t) { 
+        if(order.compare(t, n.data) > 0) {
+            return insert(n.left, t);
+        } 
+        else {
+            return insert(n.right, t);
+        }
+    }
+    
+    ABST<T> insert(ABST<T> n, T t) {
+        return new Node(this.order, t, new Leaf<T>(order), this, this.root);
+    }
+    
+    ABST<T> getLeftmost(){
+        if( )
+    }
+}
+
+class Book {
+    String title;
+    String author;
+    int price;
+}
+
+class BooksByTitle implements IComparator<Book> {
+    public int compare(Book t1, Book t2) { 
+        return t1.title.compareTo(t2.title);
+    }
+}
+
+class BooksByAuthor implements IComparator<Book> {
+    public int compare(Book t1, Book t2) { 
+        return t1.author.compareTo(t2.author);
+    }
+}
+
+class BooksByPrice implements IComparator<Book> {
+    public int compare(Book t1, Book t2) {
+        if(t1.price > t2.price) {
+            return 1;
+        }
+        else if(t1.price < t2.price) {
+            return -1;
+        }
+        else {
+            return 0;
+        }
+    }
+}
+
+class Examples {
+    void test(Tester t){
+        
+    }   
+}

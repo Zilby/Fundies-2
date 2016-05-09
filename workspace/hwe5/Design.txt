@@ -1,0 +1,11 @@
+Overall the structure of this assignment is relatively simple.
+
+class Apple - represents an apple in the game world and contains variables correlating to its location, picture, and radius hit-box. It has functions to move it and interract with the game world
+
+class Basket - represents our game's basket, also containing variables corresponding to its location, picture and radius hit-box. It has a function that allows it to move given key events.
+
+Interface ILoApple & class MtLoApple/ConsLoApple - this represents the list of all currently active apples in our game world. It has functions to determine whether a clause applies to any elements of its list, a filter function, a function that moves all the apples in the list, and a function to add all the apples to the current WorldScene.
+
+Interface ISelectApple & class Caught/OnGround - these are predicates which can be applied within ILoApple in order to aid the filter and anySuchApple functions. The apply function in Caught determines if an apple has been caught by a given basket and OnGround determines if an apple has hit the ground.
+
+class AppleGame - AppleGame is our world and contains instantiations of the worldscene, and all the elements that go in it (in this case a list of apples, a basket, and some text images). WorldScene draws the scene, onTick creates a new world after 1 tick (causing the apples to move), onKeyEvent causes the basket to move given presses on the arrow keys and WorldEnd ends the game once its condition has been met. 

@@ -1,0 +1,17 @@
+[2016-04-18 22:33:19] Executing startup tasks
+[2016-04-18 22:33:19] Product self.product.version
+[2016-04-18 22:33:19] Bundle org.eclipse.oomph.setup 1.2.0.v20150915-0926, build=1789, branch=ff5f7c46aa57e08f831c3cd10fd3ed7606b75cd6, commit=ff5f7c46aa57e08f831c3cd10fd3ed7606b75cd6
+[2016-04-18 22:33:19] Bundle org.eclipse.oomph.setup.core 1.2.0.v20150915-0926, build=1789, branch=ff5f7c46aa57e08f831c3cd10fd3ed7606b75cd6, commit=ff5f7c46aa57e08f831c3cd10fd3ed7606b75cd6
+[2016-04-18 22:33:19] Bundle org.eclipse.oomph.setup.p2 1.2.0.v20150915-0926, build=1789, branch=ff5f7c46aa57e08f831c3cd10fd3ed7606b75cd6, commit=ff5f7c46aa57e08f831c3cd10fd3ed7606b75cd6
+[2016-04-18 22:33:19] Performing Preference /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.formatter.insert_new_line_before_else_in_if_statement = do not insert
+[2016-04-18 22:33:19] Performing Preference /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.formatter.lineSplit = 120
+[2016-04-18 22:33:19] 
+[2016-04-19 06:31:26] Executing startup tasks
+[2016-04-19 06:31:27] Product self.product.version
+[2016-04-19 06:31:27] Bundle org.eclipse.oomph.setup 1.2.0.v20150915-0926, build=1789, branch=ff5f7c46aa57e08f831c3cd10fd3ed7606b75cd6, commit=ff5f7c46aa57e08f831c3cd10fd3ed7606b75cd6
+[2016-04-19 06:31:27] Bundle org.eclipse.oomph.setup.core 1.2.0.v20150915-0926, build=1789, branch=ff5f7c46aa57e08f831c3cd10fd3ed7606b75cd6, commit=ff5f7c46aa57e08f831c3cd10fd3ed7606b75cd6
+[2016-04-19 06:31:27] Bundle org.eclipse.oomph.setup.p2 1.2.0.v20150915-0926, build=1789, branch=ff5f7c46aa57e08f831c3cd10fd3ed7606b75cd6, commit=ff5f7c46aa57e08f831c3cd10fd3ed7606b75cd6
+[2016-04-19 06:31:27] Performing Preference /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.formatter.comment.format_block_comments = true
+[2016-04-19 06:31:27] Performing Preference /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.formatter.insert_new_line_before_else_in_if_statement = do not insert
+[2016-04-19 06:31:27] Performing Preference /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.formatter.lineSplit = 120
+[2016-04-19 06:31:27] 

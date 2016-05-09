@@ -1,0 +1,563 @@
+//Assignment 10
+//Maze Game Part 1
+//Breite, Li
+//lbreite
+//Cline, Sarah
+//scline22
+
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Queue;
+
+import tester.*;
+import javalib.impworld.*;
+import java.awt.Color;
+import javalib.worldimages.*;
+import java.util.Random;
+import java.util.Stack;
+
+//to represent a Node
+class Node {
+    int x;
+    int y;
+    ArrayList<Edge> outEdges;
+    public int id; //to use as the key for the hashmap
+    public Color color;
+    public static int SIZE = 10;
+
+    //to construct a node
+    Node(int x, int y, int id) {
+        this.x = x;
+        this.y = y;
+        this.outEdges = new ArrayList<Edge>();
+        this.id = id;
+        this.color = Color.lightGray;
+    }
+    
+    //this node is equal to that object iff that 
+    //object is also a Node with the same id,
+    //since ids are unique to each node
+    public boolean equals(Object that) {
+        if (that instanceof Node) {
+            return this.id == ((Node) that).id;
+        }
+        else {
+            return false;
+        }
+                
+    }
+    
+    //each id is unique
+    public int hashCode() {
+        return this.id;
+    }
+    
+    ArrayList<Node> getViableNeighbors() {
+        return new ArrayList<Node>();
+    }
+}
+
+//to represent an edge between two nodes
+class Edge implements Comparable<Edge> {
+    Node to;
+    Node from;
+    int weight;
+    
+
+    Edge(Node to, Node from, int weight) {
+        this.to = to;
+        this.from = from;
+        this.weight = weight;
+    }
+
+    //to compare edges based on weight
+    public int compareTo(Edge that) {
+        return this.weight - that.weight;
+    }
+    
+    //this node is equal to that object if that is an edge and 
+    //one of the following is true
+    //1. this to and that to are equal 
+    //and this from and that from are equal 
+    //and this weight and that weight are equal
+    //2. this to and that from are equal and 
+    //this from and that to are equal and 
+    //this weight and that weight are equal
+    public boolean equals(Object that) {
+        if (that instanceof Edge) {
+            return ((this.to.equals(((Edge) that).to) &&
+                    this.from.equals(((Edge) that).from)) ||
+                    (this.to.equals(((Edge) that).from) &&
+                            this.from.equals(((Edge) that).to)))
+                    &&
+                    this.weight == ((Edge) that).weight;
+        }
+        else {
+            return false;
+        }
+    }
+    
+    
+    //the ids for each node are unique, so adding them together
+    //should produce a unique hashcode
+    public int hashCode() {
+        return this.to.id + this.from.id;
+    }
+}
+
+//to represent a graph
+/*class Graph {
+
+    ArrayList<Node> allNodes;
+
+    // In Graph
+    boolean hasPathBetween(Node from, Node to) {
+        ArrayList<Node> alreadySeen = new ArrayList<Node>();
+        ArrayList<Node> worklist = new ArrayList<Node>();
+
+        // Initialize the worklist with the from node
+        worklist.add(from);
+        // As long as the worklist isn't empty...
+        while (!worklist.isEmpty()) {
+            Node next = worklist.get(0);
+            if (next.equals(to)) {
+                return true; // Success!
+            } else if (alreadySeen.contains(next)) {
+                // do nothing: we've already seen this one
+            } else {
+                // add all the neighbors of next to the worklist for further
+                // processing
+                for (Edge e : next.outEdges) {
+                    worklist.add(e.to);
+                }
+                // add next to alreadySeen, since we're done with it
+                alreadySeen.add(next);
+            }
+        }
+        // We haven't found the to node, and there are no more to try
+        return false;
+    }
+
+}
+*/
+
+
+//to represent the maze game
+class MazeGame extends World {
+    int width; //in boxes, so there will be width + 1 nodes
+    int height; //in boxes, so there will be height + 1 nodes
+    ArrayList<Node> nodes;
+    ArrayList<Edge> edges;
+    ArrayList<Edge> edgesToDraw;
+
+    //to construct a maze game
+    MazeGame(int width, int height) {
+        this.width = width;
+        this.height = height;
+
+        
+        //given a width and a height, construct nodes such that
+        //there are the right number of nodes
+        ArrayList<Node> temp = new ArrayList<Node>();
+        
+        //for each coordinate, add a node to temp
+        for (int x = 0; x <= width; x = x + 1) {
+            for (int y = 0; y <= height; y = y + 1) {
+                temp.add(new Node(x, y, y + (x * (height + 1))));
+            }
+        }
+        
+        //for each node in temp, add edges connecting it to its neighbors
+        for (int pos = 0; pos < temp.size(); pos = pos + 1) {
+            
+            //top right corner
+            if (temp.get(pos).x == 0 && temp.get(pos).y == 0) {
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos + height), 
+                        temp.get(pos), new Random().nextInt(width * height)));
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos + 1), 
+                        temp.get(pos), new Random().nextInt(width * height)));
+            } 
+            
+            //bottom right corner
+            else if (temp.get(pos).x == 0 && temp.get(pos).y == height) {
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos + height),
+                        temp.get(pos), new Random().nextInt(width * height)));
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos - 1),
+                        temp.get(pos), new Random().nextInt(width * height)));
+            } 
+            
+            //top left corner
+            else if (temp.get(pos).x == width && temp.get(pos).y == 0) {
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos + 1),
+                        temp.get(pos), new Random().nextInt(width * height)));
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos - height), 
+                        temp.get(pos), new Random().nextInt(width * height)));
+            } 
+            
+            //top right corner
+            else if (temp.get(pos).x == width && temp.get(pos).y == height) {
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos - height), 
+                        temp.get(pos), new Random().nextInt(width * height)));
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos - 1),
+                        temp.get(pos), new Random().nextInt(width * height)));
+            } 
+            
+            //left side
+            else if (temp.get(pos).x == 0) {
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos + height),
+                        temp.get(pos), new Random().nextInt(width * height)));
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos + 1),
+                        temp.get(pos), new Random().nextInt(width * height)));
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos - 1), 
+                        temp.get(pos), new Random().nextInt(width * height)));
+            } 
+            
+            //top
+            else if (temp.get(pos).y == 0) {
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos + height),
+                        temp.get(pos), new Random().nextInt(width * height)));
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos + 1), 
+                        temp.get(pos), new Random().nextInt(width * height)));
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos - height),
+                        temp.get(pos), new Random().nextInt(width * height)));
+            } 
+            
+            //right side
+            else if (temp.get(pos).x == width) {
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos + 1), 
+                        temp.get(pos), new Random().nextInt(width * height)));
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos - height),
+                        temp.get(pos), new Random().nextInt(width * height)));
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos - 1),
+                        temp.get(pos), new Random().nextInt(width * height)));
+            } 
+            
+            //bottom
+            else if (temp.get(pos).y == height) {
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos + height),
+                        temp.get(pos), new Random().nextInt(width * height)));
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos - height),
+                        temp.get(pos), new Random().nextInt(width * height)));
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos - 1),
+                        temp.get(pos), new Random().nextInt(width * height)));
+            } 
+            
+            //in the middle
+            else {
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos + height),
+                        temp.get(pos), new Random().nextInt(width * height)));
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos + 1),
+                        temp.get(pos), new Random().nextInt(width * height)));
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos - height), 
+                        temp.get(pos), new Random().nextInt(width * height)));
+                temp.get(pos).outEdges.add(new Edge(temp.get(pos - 1),
+                        temp.get(pos), new Random().nextInt(width * height)));
+            }
+        }
+        
+        //the list of nodes is the list we just constructed
+        this.nodes = temp;
+        
+        ArrayList<Edge> tempEdge = new ArrayList<Edge>();
+        for (Node n : this.nodes) {
+            for (Edge e : n.outEdges) {
+                tempEdge.add(e);
+            }
+        }
+        this.edges = tempEdge;
+        
+        //sort the edges based on their weight
+        Collections.sort(this.edges);
+        
+        //edgesToDraw should contain everything 
+        //thats in the minimal spanning tree
+        //determined by kruskals algorithm
+        this.edgesToDraw = new ArrayList<Edge>();
+        ArrayList<Edge> edgesInTree = this.kruskal();
+
+        for (Edge e : edges) {
+            if (edgesInTree.contains(e)) {
+                this.edgesToDraw.add(e);
+            }
+        }
+    }
+
+    //to draw the scene
+    public WorldScene makeScene() {
+        WorldScene bg = new WorldScene(this.width * Node.SIZE, this.height * Node.SIZE);
+        WorldImage horizontalLine = new LineImage(new Posn(Node.SIZE, 0), Color.black);
+        WorldImage verticalLine = new LineImage(new Posn(0, Node.SIZE), Color.black);
+        
+        for (int i = 0; i < nodes.size(); i++) {
+            bg.placeImageXY(new RectangleImage(Node.SIZE * 2, Node.SIZE * 2, OutlineMode.SOLID, 
+                    nodes.get(i).color), nodes.get(i).x, nodes.get(i).y);
+        }
+        
+        bg.placeImageXY(new RectangleImage(Node.SIZE * 2, Node.SIZE * 2, 
+                OutlineMode.SOLID, new Color(74, 176, 40)), 0, 0);
+        bg.placeImageXY(new RectangleImage(Node.SIZE, Node.SIZE, OutlineMode.SOLID, new Color(142, 40, 176)), 
+                (this.width * Node.SIZE) - (Node.SIZE / 2) , 
+                (this.height * Node.SIZE) - (Node.SIZE / 2));
+        
+        for (Edge e : this.edgesToDraw) {
+            if (e.to.x == e.from.x) {
+                bg.placeImageXY(verticalLine, ((e.from.x + e.to.x) * Node.SIZE) / 2,
+                        ((e.from.y + e.to.y) * Node.SIZE) / 2);
+            }
+            else {
+                bg.placeImageXY(horizontalLine, ((e.from.x + e.to.x) * Node.SIZE) / 2,
+                        ((e.from.y + e.to.y) * Node.SIZE) / 2 + Node.SIZE / 2);
+            }
+        }
+        
+        return bg;
+    }
+
+    //Kruskal's algorithm as described in the assignment description
+    ArrayList<Edge> kruskal() {
+        HashMap<Integer, Node> representatives = new HashMap<Integer, Node>();
+        for (Node n : this.nodes) {
+            representatives.put(n.id, n);
+        }
+        ArrayList<Edge> edgesInTree = new ArrayList<Edge>();
+        ArrayList<Edge> worklist = new ArrayList<Edge>();
+        worklist.addAll(this.edges);
+        
+        while (edgesInTree.size() < this.nodes.size() - 1 && !worklist.isEmpty()) {
+            if (this.find(representatives, worklist.get(0).to.id).id ==
+                    this.find(representatives, worklist.get(0).from.id).id) {
+                worklist.remove(0);
+                
+            }
+            else {
+                edgesInTree.add(worklist.get(0));
+                this.union(representatives, this.find(representatives, worklist.get(0).to.id),
+                        this.find(representatives, worklist.get(0).from.id));
+                worklist.remove(0);
+            }
+        }
+        return edgesInTree;
+    }
+    
+    //find the representative for the given id
+    Node find(HashMap<Integer, Node> map, int id) {
+        if (map.get(id).id == id) {
+            return map.get(id);
+        }
+        else {
+            return this.find(map, map.get(id).id);
+        }
+    }
+    
+    //map n1 and n2 to the same representative
+    //EFFECT: changes the contents of the hashmap
+    void union(HashMap<Integer, Node> map, Node n1, Node n2) {
+        map.put(this.find(map, n1.id).id, this.find(map, n2.id));
+    }
+    
+    
+    //find a path through the maze using depth first search
+    void depthFirstSearch(Node target) {
+        HashMap<String, Edge> cameFromEdge;
+        Stack<Node> worklist = new Stack<Node>();
+        
+        //initializes the worklist to the top left corner
+        worklist.push(this.nodes.get(0));
+        
+        while(!worklist.isEmpty() && !(target.id == worklist.peek().id)) {
+            Node next = worklist.peek();
+            
+            if (next.color.equals(Color.blue)) {
+                worklist.pop();
+            }
+            else if (next.id == target.id) {
+               // return reconstruct(cameFromEdge, next);
+            }
+            else {
+                //marks the node blue to show that it has been visited
+                next.color = Color.blue;
+                for (Node n ; next.getViableNeighbors()) {
+                    worklist.push(n);
+                }
+            }
+           /*
+
+          Else:
+            For each neighbor n of next:
+              Add n to the worklist
+              Record the edge (next->n) in the cameFromEdge map
+              */
+        }
+        
+        
+        
+        /*
+        Create a stack
+        Create a new choice point
+        Push the choice point onto the stack
+        while (not found and stack is not empty)
+        Pop the stack
+        Find all possible choices after the last one tried
+        Push these choices onto the stack
+        Return
+        */
+    }
+//    
+//    //void dfsHelp {
+//        
+//    
+//    
+//    void breadthFirstSearch {
+//        HashMap<String, Edge> cameFromEdge;
+//        Queue<Node> worklist;
+//        
+//        
+//        /*
+//        Create a queue
+//        Create a new choice point
+//        Enqueue the choice point onto the queue
+//        while (not found and queue is not empty)
+//        Dequeue the queue
+//        Find all possible choices after the last one tried
+//        Enqueue these choices onto the queue
+//        Return
+//        */
+//    }
+//    
+//    //void bfsHelp {
+//        
+//    
+
+}
+
+
+//for tests and examples
+class ExamplesMaze {
+    void testMaze(Tester t) {
+        MazeGame game = new MazeGame(100, 60);
+        game.bigBang(Node.SIZE * 100, Node.SIZE * 60);
+    }
+    
+    MazeGame game1;
+    Node node1;
+    Node node2;
+    Node node3;
+    Edge edge1;
+    Edge edge2;
+    Edge edge3;
+    Edge edge4;
+    HashMap<Integer, Node> map1;
+    HashMap<Integer, Node> map2;
+    HashMap<Integer, Node> map3;
+    
+    void initData() {
+        this.game1 = new MazeGame(5, 5);
+        this.node1 = new Node(0, 0, 1);
+        this.node2 = new Node(2, 5, 2);
+        this.node3 = new Node(1, 6, 3);
+        this.edge1 = new Edge(this.node1, this.node2, 10);
+        this.edge2 = new Edge(this.node1, this.node2, 3);
+        this.edge3 = new Edge(this.node1, this.node2, 15);
+        this.edge4 = new Edge(this.node2, this.node1, 15);
+        this.map1 = new HashMap<Integer, Node>();
+        this.map1.put(1, this.node1);
+        this.map1.put(2, this.node2);
+        this.map2 = new HashMap<Integer, Node>();
+        this.map2.put(1, this.node2);
+        this.map2.put(2, this.node2);
+        this.map3 = new HashMap<Integer, Node>();
+        this.map3.put(1, this.node3);
+        this.map3.put(2, this.node2);
+        this.map3.put(3, this.node3);
+    }
+    
+    //test that the edges are sorted
+    void testSort(Tester t) {
+        this.initData();
+        for (int i = 0; i < game1.edges.size() - 1; i = i + 1) {
+            t.checkExpect(game1.edges.get(i).weight <= game1.edges.get(i + 1).weight, true);
+        }
+    }
+    
+    //test the id assignment
+    void testID(Tester t) {
+        this.initData();
+        for (int i = 0; i < game1.nodes.size() - 1; i = i + 1) {
+            t.checkExpect(game1.nodes.get(i).id == game1.nodes.get(i + 1).id - 1, true);
+        }
+    }
+    
+    //test compareTo
+    void testCompareTo(Tester t) {
+        this.initData();
+        t.checkExpect(this.edge1.compareTo(this.edge2), 7);
+        t.checkExpect(this.edge2.compareTo(this.edge3), -12);
+        t.checkExpect(this.edge1.compareTo(this.edge1), 0);
+    }
+    
+    //test equals for Nodes
+    void testEqualsNodes(Tester t) {
+        this.initData();
+        t.checkExpect(this.node1.equals(this.node2), false);
+        t.checkExpect(this.node1.equals(this.node1), true);
+        t.checkExpect(this.node2.equals(this.edge1), false);
+    }
+    
+    //test hashCode for Nodes
+    void testHashCodeNodes(Tester t) {
+        this.initData();
+        t.checkExpect(this.node1.hashCode(), 1);
+        t.checkExpect(this.node2.hashCode(), 2);
+    }
+    
+    //test equals for Edges
+    void testEqualsEdges(Tester t) {
+        this.initData();
+        t.checkExpect(this.edge1.equals(this.edge1), true);
+        t.checkExpect(this.edge1.equals(this.edge2), false);
+        t.checkExpect(this.edge3.equals(this.edge4), true);
+        t.checkExpect(this.edge2.equals(this.node1), false);
+    }
+    
+    //test hashCode for Edges
+    void testHashCodeEdges(Tester t) {
+        this.initData();
+        t.checkExpect(this.edge1.hashCode(), 3);
+        t.checkExpect(this.edge2.hashCode(), 3);
+        t.checkExpect(this.edge3.hashCode(), 3);
+        t.checkExpect(this.edge4.hashCode(), 3);
+    }
+    
+    //test find
+    void testFind(Tester t) {
+        this.initData();
+        t.checkExpect(this.game1.find(this.map1, 1), this.node1);
+        t.checkExpect(this.game1.find(this.map1, 2), this.node2);
+        t.checkExpect(this.game1.find(this.map2, 1), this.node2);
+        t.checkExpect(this.game1.find(this.map2, 2), this.node2);
+    }
+    
+    //test union
+    void testUnion(Tester t) {
+        this.initData();
+        t.checkExpect(this.map3.get(2), this.node2);
+        t.checkExpect(this.map3.get(3), this.node3);
+        t.checkExpect(this.game1.find(this.map3, 2), this.node2);
+        t.checkExpect(this.game1.find(this.map3, 3), this.node3);
+        this.game1.union(this.map3, this.node2, this.node3);
+        t.checkExpect(this.map3.get(2), this.node3);
+        t.checkExpect(this.map3.get(3), this.node3);
+        t.checkExpect(this.game1.find(this.map3, 2), this.node3);
+        t.checkExpect(this.game1.find(this.map3, 3), this.node3);
+    }
+    
+    //test Kruskal
+    void testKruskal(Tester t) {
+        this.initData();
+        t.checkExpect(this.game1.nodes.size(), 36);
+        t.checkExpect(this.game1.kruskal().size(), 35);
+    }
+}
+

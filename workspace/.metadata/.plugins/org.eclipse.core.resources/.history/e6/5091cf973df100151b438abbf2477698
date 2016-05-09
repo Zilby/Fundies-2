@@ -1,0 +1,316 @@
+import tester.Tester;
+
+//To represent a Deque list
+public class Dequeue<T> {
+    Sentinel<T> header;
+    
+    Dequeue() {
+        this.header = new Sentinel<T>();
+    }
+    
+    Dequeue(Sentinel<T> header) {
+        this.header = header;
+    }
+    
+    //returns the total number of nodes in this Deque
+    int size() {
+        return this.header.size();
+    }
+    
+    //Adds a new node with data t at the head of the Deque
+    Dequeue<T> addAtHead(T t) {
+        header.addAtHead(t);
+        return this;
+    }
+    
+    //Adds a new node with data t at the tail of the Deque
+    Dequeue<T> addAtTail(T t) {
+        header.addAtTail(t);
+        return this;
+    }
+    
+    //removes a the node at the head of the Deque
+    Dequeue<T> removeFromHead() {
+        if (this.size() == 0) {
+            throw new RuntimeException("Cannot remove from an empty list");
+        }
+        header.removeFromHead();
+        return this;
+    }
+    
+    //removes a the node at the tail of the Deque
+    Dequeue<T> removeFromTail() {
+        if (this.size() == 0) {
+            throw new RuntimeException("Cannot remove from an empty list");
+        }
+        header.removeFromTail();
+        return this;
+    }
+    
+    //finds a node that satisfies the predicate, otherwise returns the header
+    ANode<T> find(IPred<T> p) {
+        return header.find(p, true);
+    }
+    
+    //removes a node from the deque
+    Dequeue<T> removeNode(ANode<T> a) {
+        if (!a.equals(header)) {
+            header.removeNodeFirst(a);
+        }
+        return this;
+    }
+}
+
+//Represents a boolean-valued question over values of type T
+interface IPred<T> {
+    boolean apply(T t);
+}
+
+//A predicate that determines if an input is greater than 60
+class IsSixty implements IPred<Integer> {
+    public boolean apply(Integer i) { 
+        return i > 60;
+    }
+}
+
+//A predicate that determines if a string value is equal to "abc"
+class IsABC implements IPred<String> {
+    public boolean apply(String s) { 
+        return s.equals("abc");
+    }
+}
+
+//A predicate that determines if a string value is equal to "john"
+class IsJohn implements IPred<String> {
+    public boolean apply(String s) { 
+        return s.equals("john");
+    }
+}
+
+//An abstract class to represent a node, either a sentinel or a regular node
+abstract class ANode<T> {
+    ANode<T> next;
+    ANode<T> prev;
+    
+    //returns the total number of nodes in this deque
+    int size(ANode<T> s) {
+        if (this.next.equals(s)) {
+            return 1;
+        }
+        else {
+            return 1 + this.next.size(s);
+        }
+    }
+    
+    //removes this node from the deque
+    void remove() {
+        this.prev.next = this.next;
+        this.next.prev = this.prev;
+    }
+    
+    //assists in finding a node that meets the predicate p
+    ANode<T> find(IPred<T> p) {
+        return this;
+    }
+    
+    //assists in removing the node a from the deque
+    void removeNode(ANode<T> a) {
+        if (this.equals(a)) {
+            this.remove();
+        }
+        else {
+            this.next.removeNode(a);
+        }
+    }
+}
+
+//a class to represent a sentinel, a marker for the deque
+class Sentinel<T> extends ANode<T> {
+    
+    Sentinel() {
+        this.next = this;
+        this.prev = this;
+    }
+    
+    //assists in returning the total number of nodes in this deque
+    int size() {
+        if (this.next.equals(this)) {
+            return 0;
+        }
+        return this.next.size(this);
+    }
+    
+    //adds a node with data t to the head
+    void addAtHead(T t) {
+        new Node<T>(t, this.next, this);
+    }
+    
+    //adds a node with data t to the tail
+    void addAtTail(T t) {
+        new Node<T>(t, this, this.prev);
+    }
+    
+    //removes a node from the head of the deque
+    void removeFromHead() {
+        this.next.remove();
+    }
+    
+    //removes a node from the tail of the deque
+    void removeFromTail() {
+        this.prev.remove();
+    }
+    
+    //assists in finding a node that meets predicate p
+    //boolean b is true if this is the first time going
+    //through this sentinel searching for the node
+    ANode<T> find(IPred<T> p, boolean b) {
+        return this.next.find(p);
+    }
+    
+    //assists in removing a node a from the deque
+    //this function indicates that this is the first time going
+    //through this sentinel searching for the node
+    void removeNodeFirst(ANode<T> a) {
+        this.next.removeNode(a);
+    }
+    
+    //assists in removing a node a from the deque
+    //this function indicates that this is the second time going
+    //through this sentinel searching for the node, thus it nullifies 
+    //the ANode function since the node cannot be found. 
+    void removeNode(ANode<T> a) {
+        return;
+    }
+}
+
+//a class to represent an ordinary node
+class Node<T> extends ANode<T> {
+    T data;
+    
+    Node(T data) {
+        this.data = data;
+        this.next = null;
+        this.prev = null;
+    }
+    
+    //initializes the node and places it in the deque
+    Node(T data, ANode<T> next, ANode<T> prev) {
+        if ((next == null) || (prev == null)) { 
+            throw new IllegalArgumentException("Cannot accept null node");
+        }
+        this.data = data; 
+        this.next = next;
+        this.prev = prev;
+        prev.next = this;
+        next.prev = this;
+    }   
+    
+    //assists in finding a node in the deque that meets predicate p
+    ANode<T> find(IPred<T> p) {
+        if (p.apply(this.data)) {
+            return this;
+        }
+        else {
+            return this.next.find(p);
+        }
+    }
+}
+
+//For testing purposes
+class ExamplesDeque {
+    Dequeue<String> deque1;
+    Sentinel<String> S2;
+    Node<String> N21;
+    Node<String> N22;
+    Node<String> N23;
+    Node<String> N24;
+    Dequeue<String> deque2;
+    Sentinel<Integer> S3;
+    Node<Integer> N31;
+    Node<Integer> N32;
+    Node<Integer> N33;
+    Node<Integer> N34;
+    Node<Integer> N35;
+    Dequeue<Integer> deque3;
+    
+    //resets to initial conditions
+    void initData() {
+        deque1 = new Dequeue<String>();
+        S2 = new Sentinel<String>();
+        N21 = new Node<String>("abc", S2, S2);
+        N22 = new Node<String>("bcd", S2, N21);
+        N23 = new Node<String>("cde", S2, N22);
+        N24 = new Node<String>("def", S2, N23);
+        deque2 = new Dequeue<String>(S2);
+        S3 = new Sentinel<Integer>();
+        N31 = new Node<Integer>(53, S3, S3);
+        N32 = new Node<Integer>(21, S3, N31);
+        N33 = new Node<Integer>(99, S3, N32);
+        N34 = new Node<Integer>(70, S3, N33);
+        N35 = new Node<Integer>(58, S3, N34);
+        deque3 = new Dequeue<Integer>(S3);
+    }
+    
+    //For testing the size function of Dequeue<T>
+    void testSize(Tester t) {
+        initData();
+        t.checkExpect(this.deque1.size(), 0);
+        t.checkExpect(this.deque2.size(), 4);
+        t.checkExpect(this.deque3.size(), 5);
+    }
+    
+    //For testing the add/remove at head/tail functions for Dequeue<T>
+    void testAddRemove(Tester t) {
+        initData();
+        this.deque1.addAtHead("john");
+        this.deque1.addAtHead("peter");
+        this.deque1.addAtTail("albert");
+        this.deque1.addAtTail("gerald");
+        Sentinel<String> S4 = new Sentinel<String>();
+        Node<String> N41 = new Node<String>("peter", S4, S4);
+        Node<String> N42 = new Node<String>("john", S4, N41);
+        Node<String> N43 = new Node<String>("albert", S4, N42);
+        Node<String> N44 = new Node<String>("gerald", S4, N43);
+        Dequeue<String> deque4 = new Dequeue<String>(S4);
+        t.checkExpect(this.deque1, deque4);
+        this.deque1.removeFromHead();
+        this.deque1.removeFromTail();
+        Sentinel<String> S5 = new Sentinel<String>();
+        Node<String> N51 = new Node<String>("john", S5, S5);
+        Node<String> N52 = new Node<String>("albert", S5, N51);
+        Dequeue<String> deque5 = new Dequeue<String>(S5);
+        t.checkExpect(this.deque1, deque5);
+    }
+    
+    //For testing the find and remove functions for Dequeue<T>
+    void testFindRemove(Tester t) {
+        initData();
+        t.checkExpect(this.deque1.find(new IsABC()), this.deque1.header);
+        t.checkExpect(this.deque2.find(new IsABC()), this.N21);
+        t.checkExpect(this.deque2.find(new IsJohn()), this.S2);
+        t.checkExpect(this.deque3.find(new IsSixty()), this.N33);
+        Sentinel<String> S6 = new Sentinel<String>();
+        Node<String> N61 = new Node<String>("abc", S6, S6);
+        Node<String> N62 = new Node<String>("bcd", S6, N61);
+        Node<String> N63 = new Node<String>("cde", S6, N62);
+        Node<String> N64 = new Node<String>("def", S6, N63);
+        Dequeue<String> deque6 = new Dequeue<String>(S6);
+        this.deque2.removeNode(new Node<String>("john"));
+        t.checkExpect(this.deque2, deque6);
+        Sentinel<String> S7 = new Sentinel<String>();
+        Node<String> N71 = new Node<String>("abc", S7, S7);
+        Node<String> N72 = new Node<String>("bcd", S7, N71);
+        Node<String> N73 = new Node<String>("def", S7, N72);
+        Dequeue<String> deque7 = new Dequeue<String>(S7);
+        this.deque2.removeNode(N23);
+        t.checkExpect(this.deque2, deque7);
+        Sentinel<Integer> S8 = new Sentinel<Integer>();
+        Node<Integer> N81 = new Node<Integer>(53, S8, S8);
+        Node<Integer> N82 = new Node<Integer>(99, S8, N81);
+        Node<Integer> N83 = new Node<Integer>(70, S8, N82);
+        Node<Integer> N84 = new Node<Integer>(58, S8, N83);
+        Dequeue<Integer> deque8 = new Dequeue<Integer>(S8);
+        this.deque3.removeNode(N32);
+        t.checkExpect(this.deque3, deque8);
+    }
+}

@@ -1,0 +1,87 @@
+import tester.*;
+
+public abstract class ABST<T> {
+    IComparator<T> order;
+    
+    ABST(IComparator<T> order) {
+        this.order = order;
+    }
+    
+    ABST<T> insert(T t){
+        return new Node<T>(order, t);
+    }
+    
+    ABST<T> getLeftmost(){
+        throw new RuntimeException("No leftmost item of an empty tree");
+    }
+}
+
+interface IComparator<T> {
+    boolean compare(T t1, T t2);
+}
+
+class Leaf<T> extends ABST<T> {
+    Leaf(IComparator<T> order) {    
+        super(order);
+    }
+}
+
+class Node<T> extends ABST<T> {
+    T data;
+    ABST left;
+    ABST right;
+    
+    Node(IComparator<T> order, T data) {
+        super(order);
+        this.data = data;
+        this.left = new Leaf<T>();
+        this.right = new Leaf<T>();
+    }
+    
+    Node(IComparator<T> order, T data, ABST left, ABST right){
+        super(order);
+        this.data = data;
+        this.left = left;
+        this.right = right;
+    }
+    
+    ABST<T> insert(T t){
+        if(order.compare(t, this.data)) {
+            this.left = new Node(order, t, this.left, this);
+        }
+    }
+    
+    ABST<T> getLeftmost(){
+        if( )
+    }
+}
+
+class Book {
+    String title;
+    String author;
+    int price;
+}
+
+class BooksByTitle implements IComparator<Book> {
+    public boolean compare(Book t1, Book t2) { 
+        return 0 <= t1.title.compareTo(t2.title);
+    }
+}
+
+class BooksByAuthor implements IComparator<Book> {
+    public boolean compare(Book t1, Book t2) { 
+        return 0 <= t1.author.compareTo(t2.author);
+    }
+}
+
+class BooksByPrice implements IComparator<Book> {
+    public boolean compare(Book t1, Book t2) {
+        return t1.price > t2.price;
+    }
+}
+
+class Examples {
+    void test(Tester t){
+        
+    }   
+}

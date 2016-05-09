@@ -1,0 +1,358 @@
+import tester.*;
+import javalib.impworld.*;
+import java.awt.Color;
+import javalib.worldimages.*;
+import java.util.*;
+
+//represents a list of objects
+interface IList<T> extends Iterable<T> {
+    // determines if list is empty
+    boolean isEmpty();
+    
+    int len();
+
+    // for iterating over the list
+    Iterator<T> iterator();
+
+    // adds an element to the list
+    IList<T> add(T t);
+    
+    // adds an element to the list in the correct position
+    IList<T> addSorted(T t, IComparator<T> c);
+    
+    // appends a list to the list
+    IList<T> append(IList<T> l);
+
+    // checks if list has another value left
+    boolean hasNext();
+
+    // gets data value at this point
+    T getData();
+
+    // gets the rest of the list
+    IList<T> getNext();
+}
+
+// represents an empty list
+class Empty<T> implements IList<T>, Iterable<T> {
+    public int len() {
+        return 0;
+    }
+    
+    // determines if list is empty
+    public boolean isEmpty() {
+        return true;
+    }
+
+    // for iterating over the list
+    public Iterator<T> iterator() {
+        return new ListIterator<T>(this);
+    }
+
+ // adds an element to the list
+    public IList<T> add(T t) {
+        return new Cons<T>(t, new Empty<T>());
+    }
+    
+    // adds an element to the list in the correct position
+    public IList<T> addSorted(T t, IComparator<T> c){
+        return add(t);
+    }
+    
+    // appends an element to the list
+    public IList<T> append(IList<T> l) {
+        return l;
+    }
+
+    // checks if list has another value left
+    public boolean hasNext() {
+        return false;
+    }
+
+    // gets data value at this point
+    public T getData() {
+        return null;
+    }
+
+    // gets the rest of the list
+    public IList<T> getNext() {
+        throw new UnsupportedOperationException();
+    }
+}
+
+// represents a list with an element of a list
+class Cons<T> implements IList<T>, Iterable<T> {
+    // The data of this node
+    T first;
+    // the rest of the list
+    IList<T> rest;
+
+    Cons(T first, IList<T> rest) {
+        this.first = first;
+        this.rest = rest;
+    }
+    
+    public int len() {
+        return 1 + this.rest.len();
+    }
+
+    // determines if list is empty
+    public boolean isEmpty() {
+        return false;
+    }
+
+    // for iterating over the list
+    public Iterator<T> iterator() {
+        return new ListIterator<T>(this);
+    }
+
+ // adds an element to the list
+    public IList<T> add(T t) {
+        if (rest.isEmpty()) {
+            rest = new Cons<T>(t, new Empty<T>());
+        } else {
+            rest.add(t);
+        }
+        return this;
+    }
+    
+    // adds an element to the list in the correct position
+    public IList<T> addSorted(T t, IComparator<T> c){
+        if(c.apply(this.first, t)) {
+            this.rest = new Cons<T>(this.first, this.rest);
+            this.first = t;
+        } else {
+            rest.addSorted(t, c);
+        }
+        return this;
+    }
+    
+    // appends a list to the list
+    public IList<T> append(IList<T> l) {
+        if (rest.isEmpty()) {
+            rest = l;
+        } else {
+            rest.append(l);
+        }
+        return this;
+    }
+
+    // checks if list has another value left
+    public boolean hasNext() {
+        return !this.rest.isEmpty();
+    }
+
+    // gets data value at this point
+    public T getData() {
+        return this.first;
+    }
+
+    // gets the rest of the list
+    public IList<T> getNext() {
+        return this.rest;
+    }
+}
+
+// for iterating over our list
+class ListIterator<T> implements Iterator<T> {
+    IList<T> curr;
+
+    ListIterator(IList<T> curr) {
+        this.curr = curr;
+    }
+
+    // returns true if there's at least one value left in this iterator
+    public boolean hasNext() {
+        return curr.hasNext();
+    }
+
+    // returns the next value and advances the iterator
+    public T next() {
+        T temp = this.curr.getNext().getData();
+        this.curr = this.curr.getNext();
+        return temp;
+    }
+
+    // no need to implement this since it is never used
+    public void remove() {
+        throw new UnsupportedOperationException();
+    }
+}
+
+interface IComparator<T> {
+    boolean apply(T t1, T t2);
+}
+
+class CompareEdges implements IComparator<Edge> {
+    public boolean apply(Edge e1, Edge e2) {
+        return e1.weight > e2.weight;
+    }
+}
+
+// represents a cell in the game scene
+class Cell {
+    Vertex vertex;
+    boolean visited;
+
+    Cell(Vertex vertex) {
+        this.vertex = vertex;
+        this.visited = false;
+    }
+}
+
+// a vertex in a graph
+class Vertex {
+    int x;
+    int y;
+    IList<Edge> outEdges;
+
+    Vertex(int x, int y, IList<Edge> outEdges) {
+        this.x = x;
+        this.y = y;
+        this.outEdges = outEdges;
+    }
+
+    int toIdentifier() {
+        return 1000 * y + x;
+    }
+}
+
+// an edge in a graph
+class Edge {
+    Vertex from;
+    Vertex to;
+    int weight;
+
+    Edge(Vertex from, Vertex to, int weight) {
+        this.from = from;
+        this.to = to;
+        this.weight = weight;
+    }
+}
+
+class MazeGameWorld extends World {
+    // width of the world in cells
+    static final int WIDTH = 20;
+    // height of the world in cells
+    static final int HEIGHT = 15;
+    // scale of the world
+    static final int SCALE = 50;
+    IList<Cell> cells;
+    IList<Edge> edges;
+    
+    MazeGameWorld() {
+        ArrayList<ArrayList<Vertex>> v = generateInitVertices();
+        cells = generateCells(v);
+        //edges = KruskalVertice(generateEdges(v));
+    }
+    
+    ArrayList<ArrayList<Vertex>> generateInitVertices() {
+        ArrayList<ArrayList<Vertex>> vertices = new ArrayList<ArrayList<Vertex>>();
+        for (int x = 0; x < WIDTH; x++) {
+            ArrayList<Vertex> temp = new ArrayList<Vertex>();
+            for (int y = 0; y < HEIGHT; y++) {
+                temp.add(new Vertex(x, y, new Empty<Edge>()));
+            }
+            vertices.add(temp);
+        }
+        return vertices;
+    }
+    
+    IList<Cell> generateCells(ArrayList<ArrayList<Vertex>> l) {
+        IList<Cell> c = new Empty<Cell>();
+        for (ArrayList<Vertex> vList : l) {
+            for (Vertex v : vList) {
+                c.add(new Cell(v));
+            }
+        }
+        for (Cell c1 : c) {
+            System.out.println("x: " + c1.vertex.x);
+            System.out.println("y: " + c1.vertex.y);
+        }
+        return c;
+    }
+
+    IList<Edge> generateEdges(ArrayList<ArrayList<Vertex>> l) {
+        Random r = new Random();
+        IList<Edge> allEdges = new Empty<Edge>();
+        for (ArrayList<Vertex> vList : l) {
+            for (Vertex v : vList) {
+                if (v.x != 0) {
+                    allEdges.add(new Edge(v, l.get(v.x - 1).get(v.y), r.nextInt(1000)));
+                }
+                if (v.x != WIDTH - 1) {
+                    allEdges.add(new Edge(v, l.get(v.x + 1).get(v.y), r.nextInt(1000)));
+                }
+                if (v.y != 0) {
+                    allEdges.add(new Edge(v, l.get(v.x).get(v.y - 1), r.nextInt(1000)));
+                }
+                if (v.y != HEIGHT - 1) {
+                    allEdges.add(new Edge(v, l.get(v.x).get(v.y + 1), r.nextInt(1000)));
+                }
+            }
+        }
+        return allEdges;
+    }
+
+    int find(HashMap<Integer, Integer> hashmap, int x) {
+        if (hashmap.get(x) == x) {
+            return x;
+        }
+        else {
+            return find(hashmap, hashmap.get(x));
+        }
+    }
+
+    IList<Edge> sort(IList<Edge> edges) {
+        IList<Edge> allEdgesSorted = new Empty<Edge>();
+        for (Edge e : edges) {
+            allEdgesSorted.addSorted(e, new CompareEdges());
+        }
+        return allEdgesSorted;
+    }
+    
+    IList<Edge> KruskalVertice(IList<Edge> allEdges) {
+        int totalCells = HEIGHT * WIDTH;
+        IList<Edge> ST = new Empty<Edge>();
+        IList<Edge> allEdgesSorted = sort(allEdges);
+        HashMap<Integer, Integer> hash = new HashMap<Integer, Integer>();
+        for (int i = 0; i <= (1000*HEIGHT) + WIDTH; i++) {
+            hash.put(i, i);
+        }
+        while (ST.len() <= totalCells - 1) {
+            for (Edge e : allEdgesSorted) {
+                if (this.find(hash, e.to.toIdentifier()) != this.find(hash, e.from.toIdentifier())) {
+                    ST = ST.add(e);
+                    hash.remove(e.to.toIdentifier());
+                    hash.put(e.to.toIdentifier(), e.from.toIdentifier());
+                }
+            }
+        }
+        return ST;
+    }
+
+    // draws the world scene
+    public WorldScene makeScene() {
+        WorldScene w = new WorldScene(WIDTH * SCALE, HEIGHT * SCALE);
+        for (Cell c : cells) {
+            //Color col = generateColor(c);
+            w.placeImageXY(new RectangleImage(SCALE, 
+                    SCALE, OutlineMode.SOLID, Color.gray), //col), 
+                    c.vertex.x * SCALE, c.vertex.y * SCALE);
+        }
+        return w;
+    }
+
+    //public void onTick() {
+    //}
+
+    //public void onKeyEvent(String ke) {
+    //}
+}
+
+class ExamplesMazeGame {
+    void testGame(Tester t) {
+        MazeGameWorld m = new MazeGameWorld();
+        m.bigBang(MazeGameWorld.WIDTH * MazeGameWorld.SCALE, MazeGameWorld.HEIGHT * MazeGameWorld.SCALE);
+    }
+}

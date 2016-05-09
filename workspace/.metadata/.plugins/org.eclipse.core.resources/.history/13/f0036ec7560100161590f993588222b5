@@ -1,0 +1,226 @@
+
+import java.util.*;
+import tester.*;
+import javalib.impworld.*;
+import java.awt.Color;
+import javalib.worldimages.*;
+
+interface Function {
+    double apply(double x);
+}
+
+class F1 implements Function {
+    public double apply(double x) {
+        return ((200 - x) * 1 / 5) + 80;
+        // dy/dx = -1/5
+    }
+}
+
+class F2 implements Function {
+    public double apply(double x) {
+        return (x * 4 / 15) + 80;
+        // dy/dx = 4/15
+    }
+}
+
+class F3 implements Function {
+    public double apply(double x) {
+        return ((200 - x) * (200 - x)) * 3 / 1000;
+        // dy/dx = (3x - 600)/500 
+    }
+}
+
+class F4 implements Function {
+    public double apply(double x) {
+        return x * x / 1000;
+        // dy/dx = x/500
+    }
+}
+
+class Ball{
+    boolean active;
+    double x;
+    double y;
+    double xv;
+    double yv;
+    Color color;
+
+    Ball(Posn pos) {
+        Random r = new Random();
+        x = pos.x;
+        y = 500 - pos.y;
+        xv = 0;
+        yv = 0;
+        color = new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255));
+        active = true;
+    }
+    
+    Ball() {
+        x = 0;
+        y = 0;
+        xv = 0;
+        yv = 0;
+        color = color.black;
+        active = false;
+    }
+}
+
+// represents our world state
+class Math extends World {
+    boolean left;
+    boolean right;
+    Function f;
+    ArrayList<Ball> balls;
+    Ball active; 
+
+    Math() {
+        balls = new ArrayList<Ball>();
+        left = false;
+        right = false;
+        active = new Ball();
+    }
+
+    // draws the world scene
+    public WorldScene makeScene() {
+        WorldScene w = new WorldScene(1000, 500);
+        for (double i = 0.0; i < 200.0; i++) {
+            f = new F1();
+            w.placeImageXY(new CircleImage(1, OutlineMode.SOLID, Color.black), (int)i, (int)(500 - f.apply(i)));
+        }
+        for (double i = 0.0; i < 150.0; i++) {
+            f = new F2();
+            w.placeImageXY(new CircleImage(1, OutlineMode.SOLID, Color.black), (int)(200 + i), (int)(500 - f.apply(i)));
+        }
+        for (double i = 0.0; i < 200.0; i++) {
+            f = new F3();
+            w.placeImageXY(new CircleImage(1, OutlineMode.SOLID, Color.black), (int)(350 + i), (int)(500 - f.apply(i)));
+        }
+        for (double i = 0.0; i < 450.0; i++) {
+            f = new F4();
+            w.placeImageXY(new CircleImage(1, OutlineMode.SOLID, Color.black), (int)(550 + i), (int)(500 - f.apply(i)));
+        }
+        for (Ball b : balls) {
+            w.placeImageXY(new CircleImage(5, OutlineMode.SOLID, b.color), (int)b.x, (int)(500 - b.y));
+        }
+        if (active.active) {
+            w.placeImageXY(new TextImage("Active Ball:", 30, Color.black), 100, 30);
+            w.placeImageXY(new TextImage("xcor: " + (int)active.x + "  ycor: " + (int)active.y, 20, active.color), 100, 70);
+        }
+        return w;
+    }
+
+    public void onTick() {
+        double gravity = 0.01;
+        for (Ball b : balls) {
+            if (b.x < 200) {
+                f = new F1();
+                if (b.y <= f.apply(b.x)) {
+                    b.y = f.apply(b.x);
+                    // x coordinate of perpendicular vector
+                    // (derivative of F1 at this point)
+                    double px = 1.0 / 5.0;
+                    // y coordinate of perpendicular vector
+                    double py = 1;
+                    // x and y coordinate of new vector
+                    // uses w = v - 2Pu(v)
+                    b.xv = b.xv - (2*(((px*b.xv) + (py*b.yv)) / ((px*px) + (py*py)))*px);
+                    b.yv = b.yv - (2*(((px*b.xv) + (py*b.yv)) / ((px*px) + (py*py)))*py);
+                } else {
+                    b.yv -= gravity;
+                }
+            } else if (b.x < 350) {
+                f = new F2();
+                if (b.y <= f.apply(b.x - 200)) {
+                    b.y = f.apply(b.x - 200);
+                    // x coordinate of perpendicular vector
+                    // (derivative of F2 at this point)
+                    double px = -4.0 / 15.0;
+                    // y coordinate of perpendicular vector
+                    double py = 1;
+                    // x and y coordinate of new vector
+                    // uses w = v - 2Pu(v)
+                    b.xv = b.xv - (2*(((px*b.xv) + (py*b.yv)) / ((px*px) + (py*py)))*px);
+                    b.yv = b.yv - (2*(((px*b.xv) + (py*b.yv)) / ((px*px) + (py*py)))*py);
+                } else {
+                    b.yv -= gravity;
+                }
+            } else if (b.x < 550) {
+                f = new F3();
+                if (b.y <= f.apply(b.x - 350)) {
+                    b.y = f.apply(b.x - 350);
+                    // x coordinate of perpendicular vector
+                    // (derivative of F3 at this point)
+                    double px = -1 * (((3.0 * (b.x - 350)) - 600) / 500);
+                    // y coordinate of perpendicular vector
+                    double py = 1;
+                    // x and y coordinate of new vector
+                    // uses w = v - 2Pu(v)
+                    b.xv = b.xv - (2*(((px*b.xv) + (py*b.yv)) / ((px*px) + (py*py)))*px);
+                    b.yv = b.yv - (2*(((px*b.xv) + (py*b.yv)) / ((px*px) + (py*py)))*py);
+                } else {
+                    b.yv -= gravity;
+                }
+            } else {
+                f = new F4();
+                if (b.y <= f.apply(b.x - 550)) {
+                    b.y = f.apply(b.x - 550);
+                    // x coordinate of perpendicular vector
+                    // (derivative of F1 at this point)
+                    double px = -1 * ((b.x - 550) / 500);
+                    // y coordinate of perpendicular vector
+                    double py = 1;
+                    // x and y coordinate of new vector
+                    // uses w = v - 2Pu(v)
+                    b.xv = b.xv - (2*(((px*b.xv) + (py*b.yv)) / ((px*px) + (py*py)))*px);
+                    b.yv = b.yv - (2*(((px*b.xv) + (py*b.yv)) / ((px*px) + (py*py)))*py);
+                } else {
+                    b.yv -= gravity;
+                }
+            } 
+            b.x += b.xv;
+            b.y += b.yv;
+        }
+        Iterator<Ball> i = balls.iterator();
+        while (i.hasNext()) {
+            Ball b = i.next();
+            if (b.x < 0 || b.x > 1000) {
+                b.xv = b.xv*-1;
+                b.x+= b.xv;
+            }
+        }
+    }
+
+    public void onMouseClicked(Posn pos) {
+        Ball b = new Ball(pos);
+        if (left) {
+            b.xv = -1.5;
+        } else if (right) {
+            b.xv = 1.5;
+        }
+        balls.add(b);
+        this.active = b;
+    }
+    
+    public void onKeyEvent(String ke) {
+        if (ke.equals("left")) {
+            left = true;
+            right = false;
+        } else if (ke.equals("right")) {
+            right = true;
+            left = false;
+        } else if (ke.equals("down")) {
+            right = false;
+            left = false;
+        }
+    }
+
+}
+
+// for testing purposes
+class ExamplesWorld {
+    // launches the game
+    void testGame(Tester t) {
+        Math m = new Math();
+        m.bigBang(1000, 550, .001);
+    }
+}
